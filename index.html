@@ -17251,14 +17251,20 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 <script>
 (function () {
   function cleanText(value) { return (value || '').replace(/\s+/g, ' ').trim(); }
-  function stripAnswerLabel(value) { return cleanText(value).replace(/^答案\s*[:：]\s*/i, '').replace(/^Answer\s*[:：]\s*/i, ''); }
+  function stripAnswerLabel(value) { return cleanText(value).replace(/^答案\s*[:：]\s*/i, '').replace(/^Answer\s*[:：]\s*/i, '').replace(/^\[[x\s]\]\s*/i, ''); }
+  function sanitizeOptionText(value) {
+    let text = stripAnswerLabel(value).replace(/^[A-E]\.\s*/i, '').replace(/^\d+\.\s*/, '');
+    text = text.replace(/\s*[（(](?:假設|如果|若|當|如題|視|因|因為|由於|根據|.*來自.*|.*描述.*)[^）)]*[）)]\s*$/i, '');
+    return cleanText(text);
+  }
+  function comparableTerm(value) { return sanitizeOptionText(value).replace(/[()\uFF08\uFF09\s]/g, '').toLowerCase(); }
   function getAnswerText(card) {
     const answer = card.querySelector('.answer-content .answer');
     if (!answer) return '';
-    return stripAnswerLabel(answer.innerText).replace(/^[A-E]\.?\s*/, '');
+    return sanitizeOptionText(answer.innerText);
   }
   function uniqueOptions(values) {
-    return [...new Set(values.map(stripAnswerLabel).filter(Boolean))];
+    return [...new Set(values.map(sanitizeOptionText).filter(Boolean))];
   }
   function shuffleOptions(values) {
     const items = [...values];
@@ -17293,7 +17299,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const control = document.createElement('select');
     control.className = 'blank-select';
     control.dataset.correct = answer;
-    const finalOptions = inferBlankOptions(card, stripAnswerLabel(answer), options).map(stripAnswerLabel);
+    const finalOptions = inferBlankOptions(card, answer, options).map(sanitizeOptionText);
     control.innerHTML = '<option value="">請選擇</option>' + finalOptions.map(option => '<option value="' + option.replace(/"/g, '&quot;') + '">' + option + '</option>').join('');
     control.addEventListener('change', () => { if (typeof updateProgress === 'function') updateProgress(); });
     target.replaceWith(control);
@@ -17314,8 +17320,13 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       });
       const anchors = [...body.querySelectorAll('.blank-anchor')];
       const answerSpans = [...body.querySelectorAll('[data-no-highlight="true"], [data-no-class="true"]')].filter(el => cleanText(el.textContent).length > 0);
+      const answerKey = comparableTerm(getAnswerText(card));
+      const matchingAnswerSpan = answerSpans.find(el => {
+        const key = comparableTerm(el.textContent);
+        return key && answerKey && (key.includes(answerKey) || answerKey.includes(key));
+      });
       if (anchors.length) anchors.forEach(anchor => makeBlankControl(card, anchor, options));
-      else if (answerSpans.length) makeBlankControl(card, answerSpans[0], options);
+      else if (matchingAnswerSpan || answerSpans.length) makeBlankControl(card, matchingAnswerSpan || answerSpans[0], options);
       card.dataset.fillReady = 'true';
     });
   }
@@ -17510,6 +17521,10 @@ if (typeof previousShowQuestionNoMarkers === 'function') {
 <script id="append-service-english-names">
 (function () {
   const mappings = [
+    ['Azure 搜尋功能中的 AI 擴充', 'AI enrichment in Azure Search'],
+    ['電腦視覺影像分析功能', 'Azure AI Vision Image Analysis'],
+    ['自訂視覺影像分類功能', 'Custom Vision Image Classification'],
+    ['語言理解功能', 'Language Understanding'],
     ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'],
     ['Azure AI 電腦視覺 空間分析', 'Azure AI Vision Spatial Analysis'],
     ['Azure AI 自訂視覺物件偵測', 'Custom Vision Object Detection'],
@@ -17578,6 +17593,12 @@ if (typeof previousShowQuestionNoMarkers === 'function') {
     ['語言偵測', 'Language Detection'],
     ['語音轉文字', 'Speech to Text'],
     ['文字轉語音', 'Text to Speech'],
+    ['語音辨識', 'Speech Recognition'],
+    ['語音合成', 'Speech Synthesis'],
+    ['文字分析', 'Text Analytics'],
+    ['翻譯', 'Translation'],
+    ['AI 擴充', 'AI enrichment'],
+    ['語言理解', 'Language Understanding'],
     ['二元分類', 'Binary Classification'],
     ['多類別分類', 'Multiclass Classification'],
     ['異常偵測', 'Anomaly Detection'],
@@ -17608,7 +17629,9 @@ if (typeof previousShowQuestionNoMarkers === 'function') {
   const termPattern = new RegExp(mappings.map(([zh]) => escapeRegExp(zh)).join('|'), 'g');
   function alreadyHasEnglish(text, offset, match, english) {
     const after = text.slice(offset + match.length, offset + match.length + english.length + 20);
-    return new RegExp("^\\s*[（(][^）)]*" + escapeRegExp(english) + "[^）)]*[）)]", "i").test(after);
+    const exactEnglish = new RegExp("^\\s*[（(][^）)]*" + escapeRegExp(english) + "[^）)]*[）)]", "i").test(after);
+    const anyEnglish = /^\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/.test(after);
+    return exactEnglish || anyEnglish;
   }
   function appendEnglishToText(text) {
     return text.replace(termPattern, (match, offset, fullText) => {
@@ -17623,7 +17646,9 @@ if (typeof previousShowQuestionNoMarkers === 'function') {
     return !!parent.closest("script, style, .answer-content, .eng-word, .eng-abbr, .service-english-name");
   }
   function normalizeOptionText(text) {
-    return text.replace(/\s+/g, " ").trim().replace(/(\([^)]{2,80}\))(?:\s*\1)+/gi, "$1");
+    let next = text.replace(/\s+/g, " ").trim().replace(/(\([^)]{2,80}\))(?:\s*\1)+/gi, "$1");
+    next = next.replace(/(\([^)]*[A-Za-z][^)]*\))\s*\([^)]*[A-Za-z][^)]*\)/g, "$1");
+    return next;
   }
   function isStandaloneOptionElement(element) {
     if (!element || !element.matches(optionSelector)) return false;
