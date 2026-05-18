@@ -80,7 +80,17 @@ body.review-mode .answer-content { display: block; }
 .wrong-review-heading { font-size: 1.25rem; margin: 20px 0 10px; color: #1f2a44; }
 .wrong-review-card { text-align: left; border-left: 5px solid var(--bad); background: #fff; border-radius: 8px; padding: 18px; margin: 14px 0; box-shadow: 0 4px 14px rgba(20, 36, 64, .08); }
 body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-review-card .answer-content.show { display: block !important; }
-@media (max-width: 760px) { .blank-select { width: 100%; margin: 8px 0; } .timer-floating { top: auto; bottom: 12px; right: 12px; } }
+.matching-container { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 18px; align-items: start; }
+.matching-list { padding-left: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 18px; }
+.matching-item { margin: 0 !important; }
+.match-token { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #b8c7dc; background: #fff; border-radius: 6px; padding: 9px 12px; min-height: 42px; cursor: grab; color: var(--ink); }
+.match-token.selected { border-color: var(--blue); background: #eaf2ff; color: var(--blue-dark); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+.matching-answer-area { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 12px; align-items: center; margin: 10px 0; }
+.matching-answer-area input[type="text"] { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.match-drop-zone { min-height: 42px; border: 2px dashed #98acc8; border-radius: 6px; background: #f8fbff; color: #667085; display: flex; align-items: center; padding: 8px 12px; cursor: pointer; }
+.match-drop-zone.filled { border-style: solid; border-color: var(--blue); background: #eef5ff; color: var(--ink); font-weight: 700; }
+.match-drop-zone.drag-over { border-color: var(--blue-dark); background: #dbeafe; }
+@media (max-width: 760px) { .blank-select { width: 100%; margin: 8px 0; } .matching-container, .matching-answer-area { grid-template-columns: 1fr; } .timer-floating { top: auto; bottom: 12px; right: 12px; } }
 
 </style>
 </head>
@@ -17286,6 +17296,95 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       el.textContent = cleanText((el.textContent || '').replace(/^\s*([A-E]|\d+)\.\s*\[[x\s]\]\s*/i, '$1. ').replace(/^\s*\[[x\s]\]\s*/i, ''));
     });
   }
+  let activeMatchToken = null;
+  function getMatchChoice(text) {
+    const cleaned = cleanText(text);
+    const match = cleaned.match(/^([A-Z])\.?\s*(.*)$/i);
+    return match ? { letter: match[1].toUpperCase(), label: cleanText(match[2] || cleaned), text: cleaned } : { letter: cleaned.slice(0, 1), label: cleaned, text: cleaned };
+  }
+  function parseMatchingAnswers(card) {
+    const answer = card.querySelector('.answer-content .answer');
+    if (!answer) return [];
+    const values = [...answer.querySelectorAll('input[value]')].map(input => cleanText(input.getAttribute('value') || input.value).toUpperCase()).filter(Boolean);
+    if (values.length) return values;
+    return [...answer.innerText.matchAll(/(?:^|\n|\s)(\d+)\.\s*([A-Z])/gi)].map(match => match[2].toUpperCase());
+  }
+  function assignMatch(area, token) {
+    const input = area.querySelector('input[type="text"]');
+    const zone = area.querySelector('.match-drop-zone');
+    if (!input || !zone || !token) return;
+    input.value = token.dataset.letter || '';
+    zone.dataset.value = input.value;
+    zone.textContent = token.textContent;
+    zone.classList.add('filled');
+    if (typeof updateProgress === 'function') updateProgress();
+  }
+  function clearMatch(area) {
+    const input = area.querySelector('input[type="text"]');
+    const zone = area.querySelector('.match-drop-zone');
+    if (!input || !zone) return;
+    input.value = '';
+    zone.dataset.value = '';
+    zone.textContent = '點擊左側選項後，再點擊此處放置';
+    zone.classList.remove('filled');
+    if (typeof updateProgress === 'function') updateProgress();
+  }
+  function setupMatching() {
+    document.querySelectorAll('.question-card').forEach(card => {
+      const areas = [...card.querySelectorAll('.matching-answer-area')];
+      const items = [...card.querySelectorAll('.matching-item')];
+      if (!areas.length || !items.length || card.dataset.matchReady === 'true') return;
+      const expected = parseMatchingAnswers(card);
+      items.forEach(item => {
+        const choice = getMatchChoice(item.textContent);
+        item.innerHTML = '';
+        const token = document.createElement('button');
+        token.type = 'button';
+        token.className = 'match-token';
+        token.draggable = true;
+        token.dataset.letter = choice.letter;
+        token.dataset.label = choice.label;
+        token.textContent = choice.text;
+        token.addEventListener('click', () => {
+          card.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
+          token.classList.add('selected');
+          activeMatchToken = token;
+        });
+        token.addEventListener('dragstart', event => {
+          activeMatchToken = token;
+          event.dataTransfer?.setData('text/plain', choice.letter);
+        });
+        item.appendChild(token);
+      });
+      areas.forEach((area, index) => {
+        const input = area.querySelector('input[type="text"]');
+        const label = area.querySelector('label');
+        if (!input || !label || area.querySelector('.match-drop-zone')) return;
+        area.dataset.correct = expected[index] || '';
+        input.value = '';
+        input.tabIndex = -1;
+        const zone = document.createElement('button');
+        zone.type = 'button';
+        zone.className = 'match-drop-zone';
+        zone.textContent = '點擊左側選項後，再點擊此處放置';
+        zone.addEventListener('click', () => {
+          if (activeMatchToken) assignMatch(area, activeMatchToken);
+          else if (input.value) clearMatch(area);
+        });
+        zone.addEventListener('dragover', event => { event.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', event => {
+          event.preventDefault();
+          zone.classList.remove('drag-over');
+          const letter = event.dataTransfer?.getData('text/plain');
+          const token = activeMatchToken || card.querySelector('.match-token[data-letter="' + letter + '"]');
+          if (token) assignMatch(area, token);
+        });
+        area.insertBefore(zone, label);
+      });
+      card.dataset.matchReady = 'true';
+    });
+  }
   function cleanupQuestionTitles() {
     document.querySelectorAll('.question-title').forEach((title, idx) => {
       let type = title.dataset.originalTitle;
@@ -17316,12 +17415,29 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       container.appendChild(review);
     });
   }
+  const originalGradeCardForMatching = window.gradeCard;
+  if (typeof originalGradeCardForMatching === 'function') window.gradeCard = function(card) {
+    const result = originalGradeCardForMatching(card);
+    card.querySelectorAll('.matching-answer-area[data-correct]').forEach(area => {
+      if (!area.dataset.correct) return;
+      result.scorable++;
+      const picked = cleanText(area.querySelector('input[type="text"]')?.value || '').toUpperCase();
+      if (picked === area.dataset.correct) result.correct++;
+    });
+    return result;
+  };
+  const originalIsAnsweredForMatching = window.isAnswered;
+  if (typeof originalIsAnsweredForMatching === 'function') window.isAnswered = function(card) {
+    const matchingAreas = [...card.querySelectorAll('.matching-answer-area[data-correct]')];
+    if (matchingAreas.length && !matchingAreas.every(area => cleanText(area.querySelector('input[type="text"]')?.value || ''))) return false;
+    return originalIsAnsweredForMatching(card);
+  };
   const originalSetupCards = window.setupCards;
-  if (typeof originalSetupCards === 'function') window.setupCards = function () { originalSetupCards(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); };
+  if (typeof originalSetupCards === 'function') window.setupCards = function () { originalSetupCards(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); setupMatching(); };
   const originalStartExam = window.startExam;
-  if (typeof originalStartExam === 'function') window.startExam = function () { installScoreReport(); originalStartExam(); cleanupQuestionTitles(); applyTermNames(document); };
+  if (typeof originalStartExam === 'function') window.startExam = function () { installScoreReport(); originalStartExam(); cleanupQuestionTitles(); applyTermNames(document); setupMatching(); };
   const originalShowQuestion = window.showQuestion;
-  if (typeof originalShowQuestion === 'function') window.showQuestion = function(index) { originalShowQuestion(index); cleanupQuestionTitles(); applyTermNames(document); };
+  if (typeof originalShowQuestion === 'function') window.showQuestion = function(index) { originalShowQuestion(index); cleanupQuestionTitles(); applyTermNames(document); setupMatching(); };
   const originalSubmitExam = window.submitExam;
   if (typeof originalSubmitExam === 'function') window.submitExam = function(auto) {
     installScoreReport();
@@ -17337,7 +17453,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const note = document.getElementById('score-note'); if (note) note.textContent = '答對 ' + correct + ' / ' + scorable + '（' + percent + '%）。';
     buildWrongReviewCards(wrongCards); document.getElementById('results').hidden = false; document.getElementById('submit-exam').disabled = true; window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  document.addEventListener('DOMContentLoaded', () => { installScoreReport(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); if (!document.getElementById('timer-floating')) { const timer = document.createElement('div'); timer.id = 'timer-floating'; timer.className = 'timer-floating'; timer.textContent = document.getElementById('timer')?.textContent || '60:00'; document.body.appendChild(timer); } });
+  document.addEventListener('DOMContentLoaded', () => { installScoreReport(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); setupMatching(); if (!document.getElementById('timer-floating')) { const timer = document.createElement('div'); timer.id = 'timer-floating'; timer.className = 'timer-floating'; timer.textContent = document.getElementById('timer')?.textContent || '60:00'; document.body.appendChild(timer); } });
   const originalRenderTimer = window.renderTimer;
   if (typeof originalRenderTimer === 'function') window.renderTimer = function () { originalRenderTimer(); const floating = document.getElementById('timer-floating'); if (floating) floating.textContent = document.getElementById('timer')?.textContent || ''; };
 })();
