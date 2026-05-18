@@ -17510,6 +17510,14 @@ if (typeof previousShowQuestionNoMarkers === 'function') {
 <script id="append-service-english-names">
 (function () {
   const mappings = [
+    ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'],
+    ['Azure AI 電腦視覺 空間分析', 'Azure AI Vision Spatial Analysis'],
+    ['Azure AI 自訂視覺物件偵測', 'Custom Vision Object Detection'],
+    ['Azure AI 自訂視覺 物件偵測', 'Custom Vision Object Detection'],
+    ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'],
+    ['Azure AI 電腦視覺 影像分析', 'Azure AI Vision Image Analysis'],
+    ['Azure AI 自訂視覺分類', 'Custom Vision Classification'],
+    ['Azure AI 自訂視覺 分類', 'Custom Vision Classification'],
     ['Azure OpenAI 服務', 'Azure OpenAI Service'],
     ['Azure 認知搜尋', 'Azure Cognitive Search / Azure AI Search'],
     ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
@@ -17532,37 +17540,107 @@ if (typeof previousShowQuestionNoMarkers === 'function') {
     ['電腦視覺', 'Azure AI Vision'],
     ['Azure AI 搜尋服務', 'Azure AI Search'],
     ['Azure AI 搜尋', 'Azure AI Search'],
+    ['電腦視覺應用程式', 'Azure AI Vision application'],
+    ['電腦視覺 應用程式', 'Azure AI Vision application'],
+    ['情感分析解決方案', 'Sentiment Analysis solution'],
+    ['情感分析 解決方案', 'Sentiment Analysis solution'],
+    ['機器學習模型', 'machine learning model'],
+    ['聊天機器人', 'Chatbot'],
+    ['負責任 AI', 'Responsible AI'],
+    ['可靠性與安全性', 'Reliability and Safety'],
+    ['可靠性和安全性', 'Reliability and Safety'],
+    ['隱私權和安全性', 'Privacy and Security'],
+    ['隱私權與安全性', 'Privacy and Security'],
+    ['隱私和安全性', 'Privacy and Security'],
+    ['隱私與安全性', 'Privacy and Security'],
+    ['權責性', 'Accountability'],
+    ['問責制', 'Accountability'],
+    ['公平性', 'Fairness'],
+    ['包容性', 'Inclusiveness'],
+    ['透明度', 'Transparency'],
+    ['可靠性', 'Reliability'],
+    ['安全性', 'Safety'],
+    ['安全', 'Safety'],
+    ['臉部辨識', 'Face recognition'],
+    ['臉部', 'Face'],
+    ['影像分析', 'Image Analysis'],
+    ['影像分類', 'Image Classification'],
+    ['影像描述', 'Image Captioning'],
+    ['物件偵測', 'Object Detection'],
+    ['物體偵測', 'Object Detection'],
+    ['空間分析', 'Spatial Analysis'],
+    ['文件智慧', 'Azure AI Document Intelligence'],
+    ['光學字元辨識', 'Optical Character Recognition'],
+    ['文字辨識', 'Text Recognition'],
+    ['情感分析', 'Sentiment Analysis'],
+    ['關鍵片語擷取', 'Key Phrase Extraction'],
+    ['實體辨識', 'Named Entity Recognition'],
+    ['語言偵測', 'Language Detection'],
+    ['語音轉文字', 'Speech to Text'],
+    ['文字轉語音', 'Text to Speech'],
+    ['二元分類', 'Binary Classification'],
+    ['多類別分類', 'Multiclass Classification'],
+    ['異常偵測', 'Anomaly Detection'],
+    ['模型定型', 'Model Training'],
+    ['模型訓練', 'Model Training'],
+    ['模型評估', 'Model Evaluation'],
+    ['特徵工程', 'Feature Engineering'],
+    ['分類', 'Classification'],
+    ['迴歸', 'Regression'],
+    ['回歸', 'Regression'],
+    ['OCR', 'Optical Character Recognition'],
     ['自訂視覺', 'Custom Vision'],
     ['表格辨識器', 'Form Recognizer / Document Intelligence']
   ].sort((a, b) => b[0].length - a[0].length);
+  const optionSelector = [
+    '.question-body label',
+    '.question-body select option',
+    '.question-body li',
+    '.question-body .matching-item',
+    '.question-body .match-token',
+    '.question-body .order-token',
+    '.question-body .order-slot',
+    '.question-body .drag-choice',
+    '.question-body .drop-zone'
+  ].join(',');
+  const englishMap = new Map(mappings);
   function escapeRegExp(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  const termPattern = new RegExp(mappings.map(([zh]) => escapeRegExp(zh)).join('|'), 'g');
+  function alreadyHasEnglish(text, offset, match, english) {
+    const after = text.slice(offset + match.length, offset + match.length + english.length + 20);
+    return new RegExp("^\\s*[（(][^）)]*" + escapeRegExp(english) + "[^）)]*[）)]", "i").test(after);
+  }
   function appendEnglishToText(text) {
-    let next = text;
-    mappings.forEach(([zh, en]) => {
-      const pattern = new RegExp(escapeRegExp(zh) + "(?!\\s*[（(][^）)]*" + escapeRegExp(en) + "[^）)]*[）)])", "g");
-      next = next.replace(pattern, zh + " (" + en + ")");
+    return text.replace(termPattern, (match, offset, fullText) => {
+      const english = englishMap.get(match);
+      if (!english || alreadyHasEnglish(fullText, offset, match, english)) return match;
+      return match + " (" + english + ")";
     });
-    return next;
   }
   function shouldSkip(node) {
     const parent = node.parentElement;
     if (!parent) return true;
-    return !!parent.closest("script, style, .eng-word, .eng-abbr, .service-english-name");
+    return !!parent.closest("script, style, .answer-content, .eng-word, .eng-abbr, .service-english-name");
+  }
+  function normalizeOptionText(text) {
+    return text.replace(/\s+/g, " ").trim().replace(/(\([^)]{2,80}\))(?:\s*\1)+/gi, "$1");
+  }
+  function isStandaloneOptionElement(element) {
+    if (!element || !element.matches(optionSelector)) return false;
+    if (element.matches('li') && element.querySelector('input, select, textarea, button, label')) return false;
+    return true;
+  }
+  function appendEnglishInElement(element) {
+    if (!isStandaloneOptionElement(element) || shouldSkip({ parentElement: element })) return;
+    const raw = element.textContent || "";
+    const before = normalizeOptionText(raw);
+    const after = normalizeOptionText(appendEnglishToText(before));
+    if (after && (after !== before || raw !== after)) element.textContent = after;
   }
   function appendServiceEnglishNames(root) {
-    const walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode(node) {
-        if (shouldSkip(node)) return NodeFilter.FILTER_REJECT;
-        const value = node.nodeValue || "";
-        return mappings.some(([zh]) => value.includes(zh)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-      }
-    });
-    const nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(node => {
-      const next = appendEnglishToText(node.nodeValue || "");
-      if (next !== node.nodeValue) node.nodeValue = next;
-    });
+    const base = root || document.body;
+    if (base.matches && base.matches(optionSelector)) appendEnglishInElement(base);
+    base.querySelectorAll(optionSelector).forEach(appendEnglishInElement);
   }
   document.addEventListener("DOMContentLoaded", () => {
     appendServiceEnglishNames(document.body);
