@@ -83,7 +83,7 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
 .matching-container { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 18px; align-items: start; }
 .matching-list { padding-left: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 18px; }
 .matching-item { margin: 0 !important; }
-.match-token { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #b8c7dc; background: #fff; border-radius: 6px; padding: 9px 12px; min-height: 42px; cursor: grab; color: var(--ink); }
+.match-token { display: inline-flex; align-items: center; justify-content: flex-start; text-align: left; border: 1px solid #b8c7dc; background: #fff; border-radius: 6px; padding: 9px 12px; min-height: 42px; cursor: grab; color: var(--ink); }
 .match-token.selected { border-color: var(--blue); background: #eaf2ff; color: var(--blue-dark); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
 .matching-answer-area { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 12px; align-items: center; margin: 10px 0; }
 .matching-answer-area input[type="text"] { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
@@ -8718,8 +8718,10 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
             <ul>
                <li><input type="checkbox" name="exam-q166-group1" value="A" id="exam-q166-input1" data-correct="true"><label for="exam-q166-input1"> A. <span
                         data-no-highlight="true">模組 (<span class="eng-word">Module</span>)</span></label></li>
-               <li><input type="checkbox" name="exam-q166-group1" value="B" id="exam-q166-input2"><label for="exam-q166-input2"> B. 計算</label></li>
-               <li><input type="checkbox" name="exam-q166-group1" value="C" id="exam-q166-input3"><label for="exam-q166-input3"> C. 管線</label></li>
+               <li><input type="checkbox" name="exam-q166-group1" value="B" id="exam-q166-input2"><label for="exam-q166-input2"> B. <span
+                        data-no-highlight="true">計算 (<span class="eng-word">Compute</span>)</span></label></li>
+               <li><input type="checkbox" name="exam-q166-group1" value="C" id="exam-q166-input3"><label for="exam-q166-input3"> C. <span
+                        data-no-highlight="true">管線 (<span class="eng-word">Pipeline</span>)</span></label></li>
                <li><input type="checkbox" name="exam-q166-group1" value="D" id="exam-q166-input4" data-correct="true"><label for="exam-q166-input4"> D. <span
                         data-no-highlight="true">資料集 (<span class="eng-word">Dataset</span>)</span></label></li>
             </ul>
@@ -16273,7 +16275,8 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
                     <ul>
                         <li><input type="radio" name="exam-q356-group1" id="exam-q356-input1"><label for="exam-q356-input1">1. 元件</label></li>
                         <li><input type="radio" name="exam-q356-group1" id="exam-q356-input2"><label for="exam-q356-input2">2. 資料集</label></li>
-                        <li><input type="radio" name="exam-q356-group1" id="exam-q356-input3"><label for="exam-q356-input3">3. 管線</label></li>
+                        <li><input type="radio" name="exam-q356-group1" id="exam-q356-input3"><label for="exam-q356-input3">3. <span
+                                    data-no-highlight="true">管線 (<span class="eng-word">Pipeline</span>)</span></label></li>
                         <li><input type="radio" name="exam-q356-group1" id="exam-q356-input4" data-correct="true"><label for="exam-q356-input4">4. Azure Machine Learning
                                 作業</label></li>
                     </ul>
@@ -17196,13 +17199,25 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     text = text.replace(/\s*[（(](?:假設|如果|若|當|如題|視|因|因為|由於|根據|.*來自.*|.*描述.*)[^）)]*[）)]\s*$/i, '');
     return cleanText(text);
   }
+  function stripEnglishParentheses(value) { return cleanText(value).replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g, ''); }
+  function optionDedupeKey(value) { return stripEnglishParentheses(sanitizeOptionText(value)).replace(/[()（）\s]/g, '').toLowerCase(); }
   function comparableTerm(value) { return sanitizeOptionText(value).replace(/[()（）\s]/g, '').toLowerCase(); }
   function getAnswerText(card) {
     const answer = card.querySelector('.answer-content .answer');
     if (!answer) return '';
     return sanitizeOptionText(answer.innerText);
   }
-  function uniqueOptions(values) { return [...new Set(values.map(sanitizeOptionText).filter(Boolean))]; }
+  function uniqueOptions(values) {
+    const seen = new Set();
+    const result = [];
+    values.map(sanitizeOptionText).filter(Boolean).forEach(option => {
+      const key = optionDedupeKey(option);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      result.push(option);
+    });
+    return result;
+  }
   function shuffleOptions(values) {
     const items = [...values];
     for (let i = items.length - 1; i > 0; i--) { const j = (i * 7 + 3) % (i + 1); [items[i], items[j]] = [items[j], items[i]]; }
@@ -17289,6 +17304,25 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const before = element.textContent || '';
       const after = appendTerms(before);
       if (after && after !== before) element.textContent = after;
+    });
+    dedupeSelectOptions(root || document);
+  }
+  function dedupeSelectOptions(root) {
+    (root || document).querySelectorAll('.question-body select').forEach(select => {
+      const seen = new Set();
+      [...select.options].forEach(option => {
+        if (!option.value && cleanText(option.textContent) === '請選擇') return;
+        const text = appendTerms(option.textContent || option.value);
+        const key = optionDedupeKey(text);
+        if (!key) return;
+        if (seen.has(key)) {
+          option.remove();
+          return;
+        }
+        seen.add(key);
+        option.textContent = text;
+        option.value = text;
+      });
     });
   }
   function cleanChoiceMarkers() {
