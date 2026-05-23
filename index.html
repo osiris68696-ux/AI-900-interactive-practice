@@ -17309,22 +17309,38 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
   function dedupeSelectOptions(root) {
     (root || document).querySelectorAll('.question-body select').forEach(select => {
-      const seen = new Set();
+      const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && cleanText(option.textContent) === '請選擇') return;
         const text = appendTerms(option.textContent || option.value);
         const key = optionDedupeKey(text);
         if (!key) return;
         if (seen.has(key)) {
+          const kept = seen.get(key);
+          const keptText = cleanText(kept.textContent);
+          const textHasEnglish = /[（(][^）)]*[A-Za-z][^）)]*[）)]/.test(text);
+          const keptHasEnglish = /[（(][^）)]*[A-Za-z][^）)]*[）)]/.test(keptText);
+          if (textHasEnglish && !keptHasEnglish) {
+            kept.textContent = text;
+            kept.value = text;
+          }
           option.remove();
           return;
         }
-        seen.add(key);
+        seen.set(key, option);
         option.textContent = text;
         option.value = text;
       });
     });
   }
+  document.addEventListener('pointerdown', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) dedupeSelectOptions(select.closest('.question-card') || document);
+  }, true);
+  document.addEventListener('focusin', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) dedupeSelectOptions(select.closest('.question-card') || document);
+  }, true);
   function cleanChoiceMarkers() {
     document.querySelectorAll('.question-body label, .question-body option').forEach(el => {
       el.textContent = cleanText((el.textContent || '').replace(/^\s*([A-E]|\d+)\.\s*\[[x\s]\]\s*/i, '$1. ').replace(/^\s*\[[x\s]\]\s*/i, ''));
