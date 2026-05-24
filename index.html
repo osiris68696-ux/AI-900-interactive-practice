@@ -17379,6 +17379,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (!answer) return [];
     const values = [...answer.querySelectorAll('input[value]')].map(input => cleanText(input.getAttribute('value') || input.value).toUpperCase()).filter(Boolean);
     if (values.length) return values;
+    const markedAnswers = [...answer.querySelectorAll('.matching-correct-answer')].map(span => {
+      const match = cleanText(span.textContent).match(/(?:^|[（(]\s*)([A-Z]|\d+)\s*[.．)]/i);
+      return match ? match[1].toUpperCase() : '';
+    }).filter(Boolean);
+    if (markedAnswers.length) return markedAnswers;
     return [...answer.innerText.matchAll(/(?:^|\n|\s)(\d+)\.\s*([A-Z])/gi)].map(match => match[2].toUpperCase());
   }
   function assignMatch(area, token) {
@@ -17404,10 +17409,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   function setupMatching() {
     document.querySelectorAll('.question-card').forEach(card => {
       const areas = [...card.querySelectorAll('.matching-answer-area')];
-      const items = [...card.querySelectorAll('.matching-item')];
+      const items = [...new Set([...card.querySelectorAll('.matching-item, .matching-list > li')])];
       if (!areas.length || !items.length || card.dataset.matchReady === 'true') return;
       const expected = parseMatchingAnswers(card);
       items.forEach(item => {
+        item.classList.add('matching-item');
         const choice = getMatchChoice(item.textContent);
         item.innerHTML = '';
         const token = document.createElement('button');
@@ -17430,7 +17436,17 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       });
       areas.forEach((area, index) => {
         const input = area.querySelector('input[type="text"]');
-        const label = area.querySelector('label');
+        let label = area.querySelector('label');
+        if (input && !label) {
+          const labelText = cleanText([...area.childNodes].filter(node => node !== input).map(node => node.textContent || '').join(' '));
+          if (labelText) {
+            label = document.createElement('label');
+            if (input.id) label.setAttribute('for', input.id);
+            label.textContent = labelText;
+            [...area.childNodes].forEach(node => { if (node !== input) node.remove(); });
+            area.appendChild(label);
+          }
+        }
         if (!input || !label || area.querySelector('.match-drop-zone')) return;
         area.dataset.correct = expected[index] || '';
         input.value = '';
