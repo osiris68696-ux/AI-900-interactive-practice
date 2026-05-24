@@ -41,6 +41,13 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 .question-body li { margin: 10px 0; }
 .question-body label { margin-left: 8px; cursor: pointer; }
 .question-body input[type="radio"], .question-body input[type="checkbox"] { transform: scale(1.15); }
+.question-body ul:has(> li > input[type="radio"]), .question-body ul:has(> li > input[type="checkbox"]) { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; border-top: 1px solid #a9d8eb; padding-top: 16px; margin-top: 18px; }
+.question-body ul:has(> li > input[type="radio"]) li, .question-body ul:has(> li > input[type="checkbox"]) li { margin: 0; max-width: 100%; }
+.question-body li > input[type="radio"], .question-body li > input[type="checkbox"] { position: absolute; opacity: 0; width: 1px; height: 1px; transform: none; }
+.question-body li > input[type="radio"] + label, .question-body li > input[type="checkbox"] + label { display: inline-flex; align-items: center; justify-content: flex-start; max-width: 100%; min-height: 40px; margin-left: 0; border: 1px solid #2aa3c7; background: #2aa3c7; color: #fff; border-radius: 5px; padding: 8px 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.question-body li > input[type="radio"] + label .eng-word, .question-body li > input[type="radio"] + label .eng-abbr, .question-body li > input[type="checkbox"] + label .eng-word, .question-body li > input[type="checkbox"] + label .eng-abbr { color: inherit; }
+.question-body li > input[type="radio"]:focus-visible + label, .question-body li > input[type="checkbox"]:focus-visible + label { outline: 3px solid rgba(42, 163, 199, .25); outline-offset: 2px; }
+.question-body li > input[type="radio"]:checked + label, .question-body li > input[type="checkbox"]:checked + label { background: #0f6c8f; border-color: #0f6c8f; box-shadow: 0 0 0 2px rgba(15, 108, 143, .18); }
 .question-body input[type="text"], .question-body textarea, .question-body select { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-width: 100%; }
 .answer-toggle { display: none !important; }
 body.review-mode .answer-content { display: block; }
@@ -80,14 +87,17 @@ body.review-mode .answer-content { display: block; }
 .wrong-review-heading { font-size: 1.25rem; margin: 20px 0 10px; color: #1f2a44; }
 .wrong-review-card { text-align: left; border-left: 5px solid var(--bad); background: #fff; border-radius: 8px; padding: 18px; margin: 14px 0; box-shadow: 0 4px 14px rgba(20, 36, 64, .08); }
 body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-review-card .answer-content.show { display: block !important; }
-.matching-container { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 18px; align-items: start; }
-.matching-list { padding-left: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 18px; }
+.matching-container { display: grid; grid-template-columns: minmax(190px, 280px) minmax(0, 1fr); gap: 18px; align-items: start; max-width: 100%; }
+.matching-container > *, .matching-column, .matching-answer-area > * { min-width: 0; }
+.matching-list { padding-left: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin: 8px 0 18px; }
 .matching-item { margin: 0 !important; }
-.match-token { display: inline-flex; align-items: center; justify-content: flex-start; text-align: left; border: 1px solid #b8c7dc; background: #fff; border-radius: 6px; padding: 9px 12px; min-height: 42px; cursor: grab; color: var(--ink); }
-.match-token.selected { border-color: var(--blue); background: #eaf2ff; color: var(--blue-dark); box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
-.matching-answer-area { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 12px; align-items: center; margin: 10px 0; }
+.match-token { display: inline-flex; align-items: center; justify-content: flex-start; text-align: left; border: 1px solid #2aa3c7; background: #2aa3c7; color: #fff; border-radius: 6px; padding: 9px 12px; min-height: 42px; max-width: 100%; cursor: grab; overflow-wrap: anywhere; }
+.match-token .eng-word, .match-token .eng-abbr { color: inherit; }
+.match-token.selected { border-color: #0f6c8f; background: #0f6c8f; color: #fff; box-shadow: 0 0 0 2px rgba(15,108,143,.18); }
+.matching-answer-area { display: grid; grid-template-columns: minmax(190px, 260px) minmax(0, 1fr); gap: 12px; align-items: center; margin: 10px 0; max-width: 100%; }
+.matching-answer-area label { margin-left: 0; overflow-wrap: anywhere; }
 .matching-answer-area input[type="text"] { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
-.match-drop-zone { min-height: 42px; border: 2px dashed #98acc8; border-radius: 6px; background: #f8fbff; color: #667085; display: flex; align-items: center; padding: 8px 12px; cursor: pointer; }
+.match-drop-zone { min-height: 42px; width: 100%; border: 2px dashed #98acc8; border-radius: 6px; background: #f8fbff; color: #667085; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px 12px; cursor: pointer; }
 .match-drop-zone.filled { border-style: solid; border-color: var(--blue); background: #eef5ff; color: var(--ink); font-weight: 700; }
 .match-drop-zone.drag-over { border-color: var(--blue-dark); background: #dbeafe; }
 @media (max-width: 760px) { .blank-select { width: 100%; margin: 8px 0; } .matching-container, .matching-answer-area { grid-template-columns: 1fr; } .timer-floating { top: auto; bottom: 12px; right: 12px; } }
@@ -3491,11 +3501,11 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
                   </div>
                   <div class="matching-answer-area">
                      <input type="text" id="exam-q62-input2" maxlength="1" placeholder="?" aria-label="描述二的答案">
-                     用以預測類別的受監督機器學習模型</label>
+                     <label for="exam-q62-input2">用以預測類別的受監督機器學習模型</label>
                   </div>
                   <div class="matching-answer-area">
                      <input type="text" id="exam-q62-input3" maxlength="1" placeholder="?" aria-label="描述三的答案">
-                     用以根據特徵將相似實體分組的不受監督機器學習模型</label>
+                     <label for="exam-q62-input3">用以根據特徵將相似實體分組的不受監督機器學習模型</label>
                   </div>
                </div>
             </div>
