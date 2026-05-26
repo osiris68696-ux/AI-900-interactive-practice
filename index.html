@@ -100,15 +100,29 @@ body.review-mode .answer-content { display: block; }
 .blank-select { min-width: 190px; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; background: #fff; margin: 0 6px; cursor: pointer; }
 .keyword-highlight, mark { background: transparent !important; }
 .timer-floating { position: fixed; top: 84px; right: 18px; z-index: 30; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; box-shadow: 0 6px 18px rgba(20,36,64,.16); font-weight: 800; color: #0f2742; }
-.score-report { text-align: center; padding: 20px 10px 12px; }
-.score-report h2 { font-weight: 400; font-size: 1.9rem; margin: 0 0 10px; color: #1f2a44; }
-.score-report .cert-name { color: #0078d4; font-size: 1.25rem; font-weight: 700; margin-bottom: 24px; }
-.score-label { color: #8a97b3; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.score-number { font-size: 4rem; line-height: 1; font-weight: 800; color: #059669; margin: 4px 0 6px; }
+.score-report { text-align: left; padding: 0; border: 1px solid #dbe5f1; border-radius: 10px; overflow: hidden; background: #fff; }
+.score-report-header { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding: 26px 30px; background: #f8fbff; border-bottom: 1px solid #dbe5f1; }
+.score-report h2 { font-weight: 800; font-size: 1.65rem; margin: 0 0 6px; color: #10243b; }
+.score-report .cert-name { color: #0078d4; font-size: 1.05rem; font-weight: 700; margin: 0; }
+.score-summary { display: grid; grid-template-columns: minmax(190px, 250px) minmax(0, 1fr); gap: 24px; padding: 28px 30px; align-items: center; }
+.score-main { text-align: center; border-right: 1px solid #dbe5f1; padding-right: 24px; }
+.score-label { color: #8a97b3; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .86rem; }
+.score-number { font-size: 4.6rem; line-height: .95; font-weight: 900; color: #059669; margin: 8px 0 8px; }
 .score-number.fail { color: #b42318; }
-.pass-box { display: inline-block; min-width: 160px; margin: 28px 0 18px; padding: 12px 28px; border: 2px solid #10b981; color: #059669; font-size: 1.45rem; font-weight: 800; }
-.pass-box.fail { border-color: #d92d20; color: #b42318; }
-.wrong-review-heading { font-size: 1.25rem; margin: 20px 0 10px; color: #1f2a44; }
+.passing-score { color: #475467; font-weight: 700; }
+.pass-box { display: inline-flex; align-items: center; justify-content: center; min-width: 128px; min-height: 44px; padding: 8px 18px; border-radius: 999px; border: 1px solid #10b981; background: #ecfdf3; color: #047857; font-size: 1.1rem; font-weight: 900; }
+.pass-box.fail { border-color: #fecaca; background: #fef2f2; color: #b42318; }
+.score-detail { display: grid; gap: 16px; }
+.score-status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.score-note-card { border: 1px solid #dbe5f1; border-radius: 8px; padding: 14px 16px; background: #fbfdff; color: #475467; font-weight: 700; }
+.score-stats { display: grid; grid-template-columns: repeat(3, minmax(110px, 1fr)); gap: 10px; }
+.score-stat { border: 1px solid #dbe5f1; border-radius: 8px; padding: 12px 14px; background: #fff; }
+.score-stat strong { display: block; color: #10243b; font-size: 1.25rem; line-height: 1.2; }
+.score-stat span { color: var(--muted); font-size: .88rem; }
+.score-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 0; }
+.score-actions button { min-height: 42px; }
+.wrong-review-heading { font-size: 1.25rem; margin: 22px 0 12px; color: #1f2a44; display: flex; align-items: center; gap: 10px; }
+.wrong-review-heading::before { content: ""; width: 5px; height: 22px; border-radius: 999px; background: var(--bad); }
 .wrong-review-card { text-align: left; border-left: 5px solid var(--bad); background: #fff; border-radius: 8px; padding: 18px; margin: 14px 0; box-shadow: 0 4px 14px rgba(20, 36, 64, .08); }
 body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-review-card .answer-content.show { display: block !important; }
 .matching-container { display: grid; grid-template-columns: minmax(190px, 280px) minmax(0, 1fr); gap: 18px; align-items: start; max-width: 100%; }
@@ -137,6 +151,7 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
 .order-slot.filled { border-style: solid; border-color: var(--blue); background: #eef5ff; color: var(--ink); font-weight: 700; }
 .order-slot.drag-over { border-color: var(--blue-dark); background: #dbeafe; }
 @media (max-width: 760px) { .blank-select { width: 100%; margin: 8px 0; } .matching-container, .matching-answer-area { grid-template-columns: 1fr; } .timer-floating { top: auto; bottom: 12px; right: 12px; } }
+@media (max-width: 760px) { .score-report-header, .score-summary { grid-template-columns: 1fr; display: grid; padding: 22px; } .score-main { border-right: 0; border-bottom: 1px solid #dbe5f1; padding: 0 0 20px; } .score-stats { grid-template-columns: 1fr; } }
 
 </style>
 </head>
@@ -17676,7 +17691,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const results = document.getElementById('results');
     if (!results || results.dataset.reportReady) return;
     results.dataset.reportReady = 'true';
-    results.innerHTML = '<div class="score-report"><h2>Microsoft Certification Score Report</h2><div class="cert-name">AI-900: Azure AI Fundamentals</div><div class="score-label">YOUR SCORE</div><div id="score-number" class="score-number">0</div><div>Passing Score: 700</div><div id="pass-box" class="pass-box">PASS</div><div class="actions-row" style="justify-content:center"><button id="restart-exam" type="button">重考一次</button><button id="review-all" type="button">重新檢視錯題</button></div></div><h3 class="wrong-review-heading">錯題解析</h3><div id="wrong-review"></div><div id="score-line" hidden></div><p id="score-note"></p>';
+    results.innerHTML = '<div class="score-report"><div class="score-report-header"><div><h2>Microsoft Certification Score Report</h2><div class="cert-name">AI-900: Azure AI Fundamentals</div></div><div id="pass-box" class="pass-box">PASS</div></div><div class="score-summary"><div class="score-main"><div class="score-label">YOUR SCORE</div><div id="score-number" class="score-number">0</div><div class="passing-score">Passing Score: 700</div></div><div class="score-detail"><div id="score-note" class="score-note-card"></div><div class="score-stats"><div class="score-stat"><strong id="score-correct">0</strong><span>答對題數</span></div><div class="score-stat"><strong id="score-total">0</strong><span>可計分題數</span></div><div class="score-stat"><strong id="score-percent">0%</strong><span>正確率</span></div></div><div class="score-actions"><button id="restart-exam" type="button">重考一次</button><button id="review-all" type="button">重新檢視錯題</button></div></div></div></div><h3 class="wrong-review-heading">錯題解析</h3><div id="wrong-review"></div><div id="score-line" hidden></div>';
     document.getElementById('restart-exam')?.addEventListener('click', () => location.href = location.pathname + '?restart=' + Date.now());
     document.getElementById('review-all')?.addEventListener('click', () => { document.body.classList.toggle('show-all-review'); });
   }
@@ -17738,6 +17753,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (scoreNumber) { scoreNumber.textContent = scaledScore; scoreNumber.classList.toggle('fail', !passed); }
     if (passBox) { passBox.textContent = passed ? 'PASS' : '未通過'; passBox.classList.toggle('fail', !passed); }
     const note = document.getElementById('score-note'); if (note) note.textContent = '答對 ' + correct + ' / ' + scorable + '（' + percent + '%）。';
+    const scoreCorrect = document.getElementById('score-correct'); if (scoreCorrect) scoreCorrect.textContent = correct;
+    const scoreTotal = document.getElementById('score-total'); if (scoreTotal) scoreTotal.textContent = scorable;
+    const scorePercent = document.getElementById('score-percent'); if (scorePercent) scorePercent.textContent = percent + '%';
     buildWrongReviewCards(wrongCards); document.getElementById('results').hidden = false; document.getElementById('submit-exam').disabled = true; window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   document.addEventListener('DOMContentLoaded', () => { installScoreReport(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); setupMatching(); setupOrdering(); if (!document.getElementById('timer-floating')) { const timer = document.createElement('div'); timer.id = 'timer-floating'; timer.className = 'timer-floating'; timer.textContent = document.getElementById('timer')?.textContent || '60:00'; document.body.appendChild(timer); } });
