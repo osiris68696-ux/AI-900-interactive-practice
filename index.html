@@ -17303,6 +17303,21 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Azure AI 電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['Azure AI 電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['臉部服務中的偵測作業', 'Face Detect operation'], ['臉部服務中的驗證作業', 'Face Verify operation'], ['Azure 搜尋功能中的 AI 擴充', 'AI enrichment in Azure Search'], ['電腦視覺影像分析功能', 'Azure AI Vision Image Analysis'], ['自訂視覺影像分類功能', 'Custom Vision Image Classification'], ['語言理解功能', 'Language Understanding'], ['Azure OpenAI 服務', 'Azure OpenAI Service'], ['Azure 認知搜尋', 'Azure Cognitive Search / Azure AI Search'], ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 文件智慧', 'Azure AI Document Intelligence'], ['文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 翻譯工具', 'Azure AI Translator'], ['Azure AI 語音服務', 'Azure AI Speech'], ['Azure AI 語音', 'Azure AI Speech'], ['Azure AI 語言服務', 'Azure AI Language'], ['Azure AI 語言', 'Azure AI Language'], ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'], ['Azure AI 自訂視覺物件偵測', 'Custom Vision Object Detection'], ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'], ['Azure AI 自訂視覺分類', 'Custom Vision Classification'], ['Azure AI 視覺服務', 'Azure AI Vision'], ['Azure AI 視覺', 'Azure AI Vision'], ['Azure AI 電腦視覺', 'Azure AI Vision'], ['Azure AI 自訂視覺', 'Custom Vision'], ['電腦視覺應用程式', 'Azure AI Vision application'], ['情感分析解決方案', 'Sentiment Analysis solution'], ['機器學習模型', 'machine learning model'], ['聊天機器人', 'Chatbot'], ['Power Virtual Agents', 'Power 虛擬代理程式'], ['Microsoft Bot Framework', 'Microsoft 機器人架構'], ['Azure Bot Service', 'Azure 機器人服務'], ['公平性', 'Fairness'], ['可靠性和安全性', 'Reliability and Safety'], ['可靠性與安全性', 'Reliability and Safety'], ['隱私權和安全性', 'Privacy and Security'], ['權責性', 'Accountability'], ['包容性', 'Inclusiveness'], ['透明度', 'Transparency'], ['臉部辨識', 'Face recognition'], ['臉部', 'Face'], ['光學字元辨識', 'Optical Character Recognition'], ['語音辨識', 'Speech Recognition'], ['語音合成', 'Speech Synthesis'], ['文字分析', 'Text Analytics'], ['翻譯', 'Translation'], ['物件偵測', 'Object Detection'], ['影像分析', 'Image Analysis'], ['影像分類', 'Image Classification'], ['文件智慧', 'Azure AI Document Intelligence'], ['電腦視覺', 'Azure AI Vision'], ['自訂視覺', 'Custom Vision'], ['OCR', 'Optical Character Recognition']
   ].sort((a, b) => b[0].length - a[0].length);
   const termMap = new Map(termMappings);
+  const exactTermMappings = [
+    ['模型定型', 'Model Training'], ['模型訓練', 'Model Training'], ['模型重新訓練', 'Model Retraining'], ['模型評估', 'Model Evaluation'], ['評估模型', 'Evaluate Model'], ['評分模型', 'Score Model'],
+    ['分類', 'Classification'], ['二元分類', 'Binary Classification'], ['多類別分類', 'Multiclass Classification'], ['迴歸', 'Regression'], ['回歸', 'Regression'], ['線性迴歸', 'Linear Regression'], ['叢集', 'Clustering'], ['蓄集', 'Clustering'], ['異常偵測', 'Anomaly Detection'],
+    ['模型定型', 'Model Training'], ['特徵工程', 'Feature Engineering'], ['特徵選取', 'Feature Selection'], ['正規化', 'Normalization'], ['平衡精準度', 'Balanced Accuracy'], ['混淆矩陣', 'Confusion Matrix'], ['閾值', 'Threshold'],
+    ['分割資料', 'Split Data'], ['選取資料集中的資料行', 'Select Columns in Dataset'], ['資料準備', 'Data Preparation'], ['資料加密', 'Data Encryption'], ['已註冊模型', 'Registered Model'], ['已註冊的資料集', 'Registered Dataset'], ['資料集', 'Dataset'], ['模組', 'Module'], ['元件', 'Component'], ['計算', 'Compute'], ['管線', 'Pipeline'],
+    ['自然語言處理', 'Natural Language Processing'], ['情感分析', 'Sentiment Analysis'], ['實體辨識', 'Entity Recognition'], ['關鍵片語擷取', 'Key Phrase Extraction'], ['關鍵片語提取', 'Key Phrase Extraction'], ['關鍵片語摘取', 'Key Phrase Extraction'], ['關鍵片語顯取', 'Key Phrase Extraction'], ['語言偵測', 'Language Detection'], ['語言檢測', 'Language Detection'], ['交談語言理解', 'Conversational Language Understanding'], ['語言理解', 'Language Understanding'], ['語音', 'Speech'], ['語音轉換文字', 'Speech to Text'], ['文字轉換語音', 'Text to Speech'],
+    ['知識採礦', 'Knowledge Mining'], ['知識探礦', 'Knowledge Mining'], ['知識探索', 'Knowledge Mining'], ['表格辨識器', 'Form Recognizer'], ['影像描述', 'Image Description'], ['場景分割', 'Scene Segmentation'], ['語義分段', 'Semantic Segmentation'],
+    ['文字', 'Text'], ['影像', 'Image'], ['音訊', 'Audio'], ['影片', 'Video'], ['數值', 'Numeric'], ['布林值', 'Boolean'], ['日期時間', 'DateTime'], ['名字', 'First Name'], ['姓氏', 'Last Name'], ['年齡', 'Age'], ['收入範圍', 'Income Range'], ['教育程度', 'Education Level'],
+    ['預測', 'Prediction'], ['完成', 'Completion'], ['完成度', 'Completion'], ['內嵌', 'Embedding'], ['內嵌計算', 'Embedding'], ['注意力', 'Attention'], ['轉換器', 'Transformer'], ['溫度', 'Temperature'], ['熱度', 'Temperature'], ['停止序列', 'Stop Sequence'], ['存在懲罰', 'Presence Penalty'], ['微調', 'Fine-tuning'], ['提示工程', 'Prompt Engineering'], ['意圖', 'Intent'], ['實體', 'Entity'], ['領域', 'Domain'],
+    ['權責', 'Accountability'], ['隱私和安全性', 'Privacy and Security'], ['隱私權與安全性', 'Privacy and Security'], ['可靠性', 'Reliability'], ['安全', 'Safety'], ['決斷性', 'Decisiveness'], ['固執性', 'Persistence'], ['知識性', 'Knowledgeability'],
+    ['偵測', 'Detection'], ['驗證', 'Verification'], ['辨識', 'Identification'], ['規則運算式', 'Regular Expression'], ['清單', 'List'], ['語言模型', 'Language Model'],
+    ['內嵌及準備資料集', 'Ingest and Prepare Dataset'], ['定型模型', 'Train Model'], ['對原始資料集評估模型', 'Evaluate Model on Original Dataset'], ['在視覺效果畫布新增元件', 'Add Components to Visual Canvas'],
+    ['回應上限', 'Max Response'], ['家庭收入', 'Household Income'], ['房價類別', 'House Price Category'], ['機器學習（叢集）', 'Machine Learning (Clustering)']
+  ].sort((a, b) => b[0].length - a[0].length);
+  const exactTermMap = new Map(exactTermMappings);
   function escapeRegExp(value) { return value.replace(/[|\\{}()[\]^$+*?.]/g, '\\</body>'); }
   const termPattern = new RegExp(termMappings.map(([term]) => escapeRegExp(term)).join('|'), 'g');
   function normalizeOptionText(text) {
@@ -17315,8 +17330,20 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return next;
   }
   function alreadyHasParen(text, offset, match) { return /^\s*[（(][^）)]*[A-Za-z\u4e00-\u9fff][^）)]*[）)]/.test(text.slice(offset + match.length, offset + match.length + 80)); }
+  function appendExactTerm(text) {
+    const cleaned = normalizeOptionText(text);
+    if (/[A-Za-z]/.test(cleaned)) return cleaned;
+    const prefixMatch = cleaned.match(/^((?:[A-Z]|\d+)\.\s*)(.+)$/);
+    const prefix = prefixMatch ? prefixMatch[1] : '';
+    const body = prefixMatch ? prefixMatch[2] : cleaned;
+    const bodyKey = cleanText(body).replace(/[。；;:：,，]+$/g, '');
+    const english = exactTermMap.get(bodyKey);
+    return english ? prefix + bodyKey + ' (' + english + ')' : cleaned;
+  }
   function appendTerms(text) {
-    return normalizeOptionText(text).replace(termPattern, (match, offset, fullText) => alreadyHasParen(fullText, offset, match) ? match : match + ' (' + termMap.get(match) + ')');
+    const exact = appendExactTerm(text);
+    if (exact !== normalizeOptionText(text)) return exact;
+    return exact.replace(termPattern, (match, offset, fullText) => alreadyHasParen(fullText, offset, match) ? match : match + ' (' + termMap.get(match) + ')');
   }
   function applyTermNames(root) {
     const selector = '.question-body label, .question-body select option, .question-body li, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .order-slot, .question-body .drag-choice, .question-body .drop-zone';
@@ -17371,7 +17398,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   let activeMatchToken = null;
   function getMatchChoice(text) {
     const cleaned = cleanText(text);
-    const match = cleaned.match(/^([A-Z])\.?\s*(.*)$/i);
+    const match = cleaned.match(/^([A-Z]|\d+)\.?\s*(.*)$/i);
     return match ? { letter: match[1].toUpperCase(), label: cleanText(match[2] || cleaned), text: cleaned } : { letter: cleaned.slice(0, 1), label: cleaned, text: cleaned };
   }
   function parseMatchingAnswers(card) {
@@ -17422,7 +17449,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         token.draggable = true;
         token.dataset.letter = choice.letter;
         token.dataset.label = choice.label;
-        token.textContent = choice.text;
+        token.textContent = choice.letter + '. ' + appendTerms(choice.label);
         token.addEventListener('click', () => {
           card.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
           token.classList.add('selected');
@@ -17571,7 +17598,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         token.className = 'order-token';
         token.draggable = true;
         token.dataset.key = normalizeOrderValue(choice);
-        token.textContent = String.fromCharCode(65 + index) + '. ' + choice;
+        token.textContent = String.fromCharCode(65 + index) + '. ' + appendTerms(choice);
         token.addEventListener('click', () => {
           card.querySelectorAll('.order-token').forEach(btn => btn.classList.remove('selected'));
           token.classList.add('selected');
@@ -17668,6 +17695,483 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   document.addEventListener('DOMContentLoaded', () => { installScoreReport(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); setupMatching(); setupOrdering(); if (!document.getElementById('timer-floating')) { const timer = document.createElement('div'); timer.id = 'timer-floating'; timer.className = 'timer-floating'; timer.textContent = document.getElementById('timer')?.textContent || '60:00'; document.body.appendChild(timer); } });
   const originalRenderTimer = window.renderTimer;
   if (typeof originalRenderTimer === 'function') window.renderTimer = function () { originalRenderTimer(); const floating = document.getElementById('timer-floating'); if (floating) floating.textContent = document.getElementById('timer')?.textContent || ''; };
+})();
+</script>
+<script>
+(() => {
+  const glossaryPairs = [
+    ['Azure Bot Service', 'Azure Bot Service'],
+    ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
+    ['Power Virtual Agents', 'Power Virtual Agents'],
+    ['Azure Kubernetes Service', 'Azure Kubernetes Service (AKS)'],
+    ['Azure Kubernetes Service (AKS)', 'Azure Kubernetes Service (AKS)'],
+    ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
+    ['Azure AI 文件智慧', 'Azure AI Document Intelligence'],
+    ['Azure AI 語言服務', 'Azure AI Language'],
+    ['Azure AI 語言', 'Azure AI Language'],
+    ['Azure AI 語音服務', 'Azure AI Speech'],
+    ['Azure AI 語音', 'Azure AI Speech'],
+    ['Azure AI 翻譯工具', 'Azure AI Translator'],
+    ['Azure AI 翻譯', 'Azure AI Translator'],
+    ['Azure AI 電腦視覺', 'Azure AI Vision'],
+    ['Azure AI 自訂視覺', 'Custom Vision'],
+    ['Azure OpenAI 服務', 'Azure OpenAI Service'],
+    ['Azure OpenAI', 'Azure OpenAI'],
+    ['Azure 搜尋', 'Azure AI Search'],
+    ['Azure AI 搜尋', 'Azure AI Search'],
+    ['文件智慧服務', 'Azure AI Document Intelligence'],
+    ['文件智慧', 'Document Intelligence'],
+    ['語言服務', 'Language Service'],
+    ['語音服務', 'Speech Service'],
+    ['翻譯工具', 'Translator'],
+    ['電腦視覺', 'Azure AI Vision'],
+    ['自訂視覺', 'Custom Vision'],
+    ['臉部', 'Face'],
+    ['臉部偵測', 'Face Detection'],
+    ['物件偵測', 'Object Detection'],
+    ['影像分析', 'Image Analysis'],
+    ['影像分類', 'Image Classification'],
+    ['影像描述', 'Image Description'],
+    ['空間分析', 'Spatial Analysis'],
+    ['場景分割', 'Scene Segmentation'],
+    ['語義分段', 'Semantic Segmentation'],
+    ['OCR', 'Optical Character Recognition'],
+    ['光學字元辨識', 'Optical Character Recognition'],
+    ['表格辨識器模型', 'Form Recognizer Model'],
+    ['表格辨識器', 'Form Recognizer'],
+    ['媒體用影片分析器', 'Video Analyzer for Media'],
+    ['影像處理', 'Image Processing'],
+    ['分析', 'Analysis'],
+    ['模型定型', 'Model Training'],
+    ['模型訓練', 'Model Training'],
+    ['模型重新訓練', 'Model Retraining'],
+    ['模型評估', 'Model Evaluation'],
+    ['評估模型', 'Evaluate Model'],
+    ['評分模型', 'Score Model'],
+    ['訓練模型', 'Train Model'],
+    ['定型模型', 'Train Model'],
+    ['已註冊模型', 'Registered Model'],
+    ['已註冊的資料集', 'Registered Dataset'],
+    ['註冊模型', 'Register Model'],
+    ['模型名稱', 'Model Name'],
+    ['訓練端點', 'Training Endpoint'],
+    ['定型端點', 'Training Endpoint'],
+    ['驗證金鑰', 'Prediction Key'],
+    ['分類', 'Classification'],
+    ['二元分類', 'Binary Classification'],
+    ['多類別分類', 'Multiclass Classification'],
+    ['迴歸', 'Regression'],
+    ['回歸', 'Regression'],
+    ['線性迴歸', 'Linear Regression'],
+    ['叢集', 'Clustering'],
+    ['叢集模型', 'Clustering Model'],
+    ['蓄集', 'Clustering'],
+    ['蓄集 (應為叢集)', 'Clustering'],
+    ['異常偵測', 'Anomaly Detection'],
+    ['特徵工程', 'Feature Engineering'],
+    ['特徵選取', 'Feature Selection'],
+    ['正規化', 'Normalization'],
+    ['平衡精準度', 'Balanced Accuracy'],
+    ['混淆矩陣', 'Confusion Matrix'],
+    ['閾值', 'Threshold'],
+    ['資料準備', 'Data Preparation'],
+    ['資料加密', 'Data Encryption'],
+    ['資料集', 'Dataset'],
+    ['分割資料', 'Split Data'],
+    ['選取資料集中的資料行', 'Select Columns in Dataset'],
+    ['合併資料', 'Merge Data'],
+    ['新增資料列', 'Add Rows'],
+    ['模組', 'Module'],
+    ['元件', 'Component'],
+    ['計算', 'Compute'],
+    ['管線', 'Pipeline'],
+    ['自動化機器學習', 'Automated Machine Learning'],
+    ['自然語言處理', 'Natural Language Processing'],
+    ['情感分析', 'Sentiment Analysis'],
+    ['語意分析', 'Semantic Analysis'],
+    ['實體辨識', 'Entity Recognition'],
+    ['關鍵片語擷取', 'Key Phrase Extraction'],
+    ['關鍵片語提取', 'Key Phrase Extraction'],
+    ['關鍵片語摘取', 'Key Phrase Extraction'],
+    ['關鍵片語顯取', 'Key Phrase Extraction'],
+    ['關鍵詞組', 'Key Phrases'],
+    ['擷取關鍵詞組', 'Extract Key Phrases'],
+    ['語言偵測', 'Language Detection'],
+    ['語言檢測', 'Language Detection'],
+    ['交談語言理解', 'Conversational Language Understanding'],
+    ['語言理解', 'Language Understanding'],
+    ['語言模型', 'Language Model'],
+    ['語音', 'Speech'],
+    ['語音辨識', 'Speech Recognition'],
+    ['語音合成', 'Speech Synthesis'],
+    ['語音轉換文字', 'Speech to Text'],
+    ['文字轉換語音', 'Text to Speech'],
+    ['翻譯', 'Translation'],
+    ['用字遣詞', 'Wording'],
+    ['領域', 'Domain'],
+    ['實體', 'Entity'],
+    ['意圖', 'Intent'],
+    ['商務邏輯', 'Business Logic'],
+    ['知識採礦工作負載', 'Knowledge Mining Workload'],
+    ['知識採礦', 'Knowledge Mining'],
+    ['知識探礦', 'Knowledge Mining'],
+    ['知識探索', 'Knowledge Mining'],
+    ['基礎知識', 'Knowledge Base'],
+    ['機器學習', 'Machine Learning'],
+    ['機器學習模型', 'Machine Learning Model'],
+    ['聊天機器人', 'Chatbot'],
+    ['機器人', 'Bot'],
+    ['安全', 'Safety'],
+    ['安全性', 'Safety'],
+    ['可靠性', 'Reliability'],
+    ['可靠性與安全性', 'Reliability and Safety'],
+    ['公平性', 'Fairness'],
+    ['隱私權與安全性', 'Privacy and Security'],
+    ['隱私和安全性', 'Privacy and Security'],
+    ['權責', 'Accountability'],
+    ['包容性', 'Inclusiveness'],
+    ['透明度', 'Transparency'],
+    ['可靠性和安全性', 'Reliability and Safety'],
+    ['隱私權和安全性', 'Privacy and Security'],
+    ['權責性', 'Accountability'],
+    ['決斷性', 'Decisiveness'],
+    ['固執性', 'Persistence'],
+    ['知識性', 'Knowledgeability'],
+    ['影片', 'Video'],
+    ['音訊', 'Audio'],
+    ['文字', 'Text'],
+    ['影像', 'Image'],
+    ['數值', 'Numeric'],
+    ['布林值', 'Boolean'],
+    ['日期時間', 'DateTime'],
+    ['名字', 'First Name'],
+    ['姓氏', 'Last Name'],
+    ['年齡', 'Age'],
+    ['教育程度', 'Education Level'],
+    ['收入範圍', 'Income Range'],
+    ['家庭收入', 'Household Income'],
+    ['房價類別', 'House Price Category'],
+    ['清單', 'List'],
+    ['預測', 'Prediction'],
+    ['完成', 'Completion'],
+    ['內嵌', 'Embedding'],
+    ['嵌入', 'Embedding'],
+    ['注意力', 'Attention'],
+    ['轉換器', 'Transformer'],
+    ['溫度', 'Temperature'],
+    ['停止序列', 'Stop Sequence'],
+    ['存在懲罰', 'Presence Penalty'],
+    ['微調', 'Fine-tuning'],
+    ['提示工程', 'Prompt Engineering'],
+    ['最大回應', 'Max Response'],
+    ['回應上限', 'Max Response'],
+    ['熱度', 'Temperature'],
+    ['完成度', 'Completion'],
+    ['AUC 計量', 'AUC Metric'],
+    ['ROC 曲線', 'ROC Curve'],
+    ['時間限制', 'Time Limit'],
+    ['姓名化', 'Named Entity Recognition'],
+    ['匿名化', 'Anonymization'],
+    ['設定內容篩選設定', 'Configure Content Filter Settings'],
+    ['設定系統提示', 'Configure System Prompt'],
+    ['新增訓練資料', 'Add Training Data'],
+    ['修改系統訊息', 'Modify System Message'],
+    ['新增小樣本學習', 'Add Few-shot Learning'],
+    ['新增基礎知識資料', 'Add Grounding Data'],
+    ['登記客訴內容', 'Register Customer Complaint'],
+    ['包含過去的訊息', 'Include Previous Messages'],
+    ['找出感興趣的區域', 'Find Regions of Interest'],
+    ['偵測物件', 'Detect Objects'],
+    ['辨識文字', 'Recognize Text'],
+    ['動態條幅中的物件', 'Objects in a Dynamic Banner'],
+    ['產生影像標題', 'Generate Image Caption'],
+    ['建立多回合問題', 'Create Multi-turn Question'],
+    ['啟用主動學習', 'Enable Active Learning'],
+    ['提高回應的信賴等級閾值', 'Increase Response Confidence Threshold'],
+    ['佈建推斷叢集', 'Provision Inference Cluster'],
+    ['解釋模型', 'Explain Model'],
+    ['註冊訓練資料', 'Register Training Data'],
+    ['建立定型和驗證資料集', 'Create Training and Validation Datasets'],
+    ['匯出模型', 'Export Model'],
+    ['建立新的模型', 'Create New Model'],
+    ['建立預先建置工作實體', 'Create Prebuilt Entity'],
+    ['增加訓練資料量', 'Increase Training Data'],
+    ['增加定型反覆運算的數目', 'Increase Number of Training Iterations'],
+    ['辨識手寫文字', 'Recognize Handwritten Text'],
+    ['建立叢集模型', 'Create Clustering Model'],
+    ['取資料集', 'Get Dataset'],
+    ['建立分類模型', 'Create Classification Model'],
+    ['清理資料之後', 'After Cleaning Data'],
+    ['定型模型之際', 'While Training the Model'],
+    ['產品可靠性提升', 'Improve Product Reliability'],
+    ['銷售額增加', 'Increase Sales'],
+    ['合併多個通話', 'Merge Multiple Calls'],
+    ['合併多個資料集', 'Merge Multiple Datasets'],
+    ['計算模型的精準度', 'Calculate Model Accuracy'],
+    ['語言模組化', 'Language Modeling'],
+    ['預測股票價格', 'Predict Stock Prices'],
+    ['偵測影像中的商標', 'Detect Brands in Images'],
+    ['預測未來的租車數', 'Predict Future Rental Counts'],
+    ['修改影像', 'Modify Images'],
+    ['建立影像', 'Create Images'],
+    ['偵測影像中的物件', 'Detect Objects in Images'],
+    ['啟用最佳解釋模型', 'Enable Best Explainable Model'],
+    ['註冊模型', 'Register Model'],
+    ['分析影像內容並將具有相似色彩的影像分組', 'Analyze image content and group images with similar colors'],
+    ['分類 => 預測目標資料行中的數個類別之：是/否、藍色、紅色、綠色', 'Classification => Predict several categories in the target column, such as yes/no, blue, red, and green'],
+    ['手動輸入問題和答案', 'Manually enter questions and answers'],
+    ['手動輸入問題與答案', 'Manually enter questions and answers'],
+    ['只有自訂模型可以部署在內部部署環境', 'Only custom models can be deployed in an on-premises environment'],
+    ['可大聲朗讀文字訊息的車載系統', 'A vehicle system that can read text messages aloud'],
+    ['可以回答諸如「今天天氣如何？」等問題的家用智慧型裝置', 'A smart home device that can answer questions such as "How is the weather today?"'],
+    ['可隨時間分析資料並識別異常變化的機器學習技術', 'A machine learning technique that analyzes data over time and identifies abnormal changes'],
+    ['用特徵進行訓練，標籤則用來進行評估', 'Use features for training and labels for evaluation'],
+    ['用標籤進行訓練，特徵則用來進行評估', 'Use labels for training and features for evaluation'],
+    ['各計程車行程的車資', 'The fare for each taxi trip'],
+    ['各計程車行程的單程距離', 'The trip distance for each taxi trip'],
+    ['同時回答多位使用者的問題', 'Answer questions from multiple users at the same time'],
+    ['在目錄中尋找產品影像', 'Find product images in a catalog'],
+    ['在定型資料中納入測試資料', 'Include test data in the training data'],
+    ['在視覺效果畫布上新增與連結模組', 'Add and connect modules on the visual canvas'],
+    ['在網站介面中，回答有關音樂節的預定活動與購票等常見問題', 'Answer frequently asked questions about scheduled events and ticket purchases for a music festival in a website interface'],
+    ['自訂模型一律提供更高的精確度', 'Custom models always provide higher accuracy'],
+    ['自訂模型比預建模型便宜', 'Custom models are cheaper than prebuilt models'],
+    ['自訂模型可加以訓練來辨識各種表格類型', 'Custom models can be trained to recognize different form types'],
+    ['自動執行一般資料準備工作', 'Automatically perform common data preparation tasks'],
+    ['自動將車前燈插入汽車的生產線機械', 'Production-line machinery that automatically inserts headlights into cars'],
+    ['自動選取演算法以建置最精確的模型', 'Automatically select algorithms to build the most accurate model'],
+    ['自然語言處理 (預覽) => 根據時間預測值', 'Natural language processing (preview) => Predict values based on time'],
+    ['使用即時預測的模型', 'Use a model for real-time predictions'],
+    ['使用知識庫以互動方式回答使用者問題的網站', 'A website that uses a knowledge base to answer user questions interactively'],
+    ['使用知識庫部署機器人', 'Deploy a bot by using a knowledge base'],
+    ['使用原始資料集進行定型和評估', 'Use the original dataset for training and evaluation'],
+    ['使用電話鍵盤將信用卡號碼輸入到電話時，可以朗讀輸入號碼的自動語音', 'An automated voice that reads entered numbers when a credit card number is entered on a telephone keypad'],
+    ['使用數字鍵盤將信用卡號碼輸入到電話時，可以朗讀號碼的自動語音', 'An automated voice that reads numbers when a credit card number is entered on a keypad'],
+    ['使用模型為測試數據進行評分', 'Use the model to score test data'],
+    ['使用臨床資料訓練模型', 'Train the model by using clinical data'],
+    ['使用臨床資料驗證模型', 'Validate the model by using clinical data'],
+    ['使用驗證資料測試模型之後', 'After testing the model by using validation data'],
+    ['取得代表英國人口的定型樣本', 'Obtain a training sample that represents the population of the United Kingdom'],
+    ['客戶服務代理人的工作量下降', 'Reduce the workload of customer service agents'],
+    ['建立風險治理委員會,包括合法小組的成員、風險治理小組的成員,以及隱私保護專員', 'Create a risk governance committee that includes members of the legal team, members of the risk governance team, and a privacy officer'],
+    ['建立風險治理委員會，包括合法小組的成員、風險治理小組的成員、以及隱私保護專家', 'Create a risk governance committee that includes members of the legal team, members of the risk governance team, and a privacy expert'],
+    ['建立訓練影片的縮圖', 'Create thumbnails for training videos'],
+    ['建立電話或會議的文字紀錄', 'Create transcripts of phone calls or meetings'],
+    ['建議對內送電子郵件的自動化回覆', 'Suggest automated replies to incoming emails'],
+    ['為了同時訓練多個模型以取得更好的效能', 'To train multiple models at the same time for better performance'],
+    ['為了使用未用於訓練模型的資料來測試模型', 'To test the model by using data that was not used to train it'],
+    ['為了訓練模型兩次以取得更好的精確度', 'To train the model twice for better accuracy'],
+    ['為火車站建立自動廣播系統', 'Create an automated announcement system for a train station'],
+    ['為新聞廣播產生即時字幕', 'Generate real-time captions for a news broadcast'],
+    ['為錄製或直播影片提供隱藏式輔助字幕', 'Provide closed captions for recorded or live videos'],
+    ['計算在網站上輸入音樂會評論為正面或負面，然後在這些評論中加入讚或怒的表情圖示', 'Determine whether concert reviews entered on a website are positive or negative, then add a like or angry emoji to the reviews'],
+    ['修改有利於誤判為真的閾值', 'Modify the threshold in favor of false positives'],
+    ['修改有利於錯誤否定的閾值', 'Modify the threshold in favor of false negatives'],
+    ['個別計程車行程的單程距離', 'The trip distance for each individual taxi trip'],
+    ['個別計程車行程的單程識別碼', 'The trip ID for each individual taxi trip'],
+    ['根據成本路由傳送通話', 'Route calls based on cost'],
+    ['根據收據辨識零售商', 'Identify retailers from receipts'],
+    ['根據住家到工作地點的距離，預測某人是否騎自行車上班', 'Predict whether a person bikes to work based on the distance from home to work'],
+    ['根據使用者所提供影像，針對物件加以分類的機器學習技術', 'A machine learning technique that classifies objects based on images provided by users'],
+    ['根據某人前一晚的睡眠時數，預測其喝的咖啡杯數', 'Predict the number of cups of coffee a person drinks based on how many hours they slept the previous night'],
+    ['根據音軌為影片產生字幕', 'Generate captions for videos based on the audio track'],
+    ['根據過去的賽跑時間，預測某人此次賽跑所需的分鐘數', 'Predict how many minutes a person will need for a race based on past race times'],
+    ['根據語音路由傳送通話', 'Route calls based on speech'],
+    ['根據影像內容，針對該影像加以分類的機器學習技術', 'A machine learning technique that classifies an image based on image content'],
+    ['根據學生的年齡及其教育成就資料集中學生的資料', 'Based on student age and student data in an educational achievement dataset'],
+    ['根據歷史資料、房屋大小和房屋的臥室數目預測房屋的銷售價格', 'Predict a house sale price based on historical data, house size, and number of bedrooms'],
+    ['能夠理解畫面及語音的機器學習技術', 'A machine learning technique that can understand images and speech'],
+    ['偵測影像中的色彩配置', 'Detect color schemes in images'],
+    ['將主要計量設為 精確度', 'Set the primary metric to accuracy'],
+    ['將並行反覆運算上限設為 0', 'Set the concurrent iteration limit to 0'],
+    ['將原始資料集分割成定型和測試資料集，使用定型資料集進行評估', 'Split the original dataset into training and test datasets, and use the training dataset for evaluation'],
+    ['將原始資料集分割成定型和測試資料集，使用測試資料集進行評估', 'Split the original dataset into training and test datasets, and use the test dataset for evaluation'],
+    ['將原始資料集分割成定型資料集和測試資料集。使用定型資料集進行評估', 'Split the original dataset into training and test datasets. Use the training dataset for evaluation'],
+    ['將原始資料集分割成定型資料集和測試資料集。使用測試資料集進行評估', 'Split the original dataset into training and test datasets. Use the test dataset for evaluation'],
+    ['將原始資料集分割成特徵和標籤資料集，使用特徵資料集進行評估', 'Split the original dataset into feature and label datasets, and use the feature dataset for evaluation'],
+    ['將原始資料集分割成特徵資料集和標籤資料集。使用特徵資料集進行評估', 'Split the original dataset into feature and label datasets. Use the feature dataset for evaluation'],
+    ['將資料分割成訓練與測試資料集', 'Split the data into training and test datasets'],
+    ['將資料隨機分割為訓練用資料列和評估用資料列', 'Randomly split the data into rows for training and rows for evaluation'],
+    ['將資料隨機分割為訓練用資料行和評估用資料行', 'Randomly split the data into columns for training and columns for evaluation'],
+    ['將資料隨機分割為訓練資料列和評估資料列', 'Randomly split the data into training rows and evaluation rows'],
+    ['將資料隨機分割為訓練資料行和評估資料行', 'Randomly split the data into training columns and evaluation columns'],
+    ['將資料隨機分割為訓練資料與驗證資料...', 'Randomly split the data into training data and validation data...'],
+    ['將電子郵件分類為工作相關或個人相關', 'Classify email as work-related or personal'],
+    ['將語音通話轉錄為文字', 'Transcribe voice calls to text'],
+    ['將臨床資料分割成兩個資料集', 'Split the clinical data into two datasets'],
+    ['將驗證類型設為 自動', 'Set the validation type to automatic'],
+    ['從現有的網頁產生問題與答案', 'Generate questions and answers from existing web pages'],
+    ['從發票中擷取發票號碼', 'Extract invoice numbers from invoices'],
+    ['從會議錄音中提取關鍵片語', 'Extract key phrases from meeting recordings'],
+    ['從會議錄音中擷取關鍵片語', 'Extract key phrases from meeting recordings'],
+    ['從預先定義的資料來源匯入問聊內容', 'Import chit-chat content from predefined data sources'],
+    ['從預先定義的資料來源匯入閒聊內容', 'Import chit-chat content from predefined data sources'],
+    ['啟用自動調整功能，以確保服務能根據需求調整', 'Enable autoscale to ensure the service can scale based on demand'],
+    ['移除具有缺失值的記錄', 'Remove records that have missing values'],
+    ['透過分析影像來識別瀕危動物的數量', 'Identify the number of endangered animals by analyzing images'],
+    ['透過電子郵件接受問題，然後根據訊息內容將該電子郵件訊息路由傳送給正確人員', 'Accept questions by email, then route the email message to the correct person based on the message content'],
+    ['透過檢查使用者標記的大量電子郵件來識別垃圾郵件的子類型', 'Identify subtypes of spam by examining a large number of user-tagged emails'],
+    ['創建用作工作站的計算實例', 'Create a compute instance to use as a workstation'],
+    ['就訓練使用特徵，評估則使用標籤', 'Use features for training and labels for evaluation'],
+    ['就訓練使用標籤，評估則使用特徵', 'Use labels for training and features for evaluation'],
+    ['提供文件以利開發人員偵錯程式碼', 'Provide documentation to help developers debug code'],
+    ['登記客戶購買的商品', 'Register products purchased by customers'],
+    ['評估結果視覺化特徵', 'Visualize features in evaluation results'],
+    ['資料集中的計程車行程數', 'The number of taxi trips in the dataset'],
+    ['資料集輸出視覺化特徵', 'Visualize features in the dataset output'],
+    ['預測哪個網站的瀏覽者會執行交易', 'Predict which website visitors will perform transactions'],
+    ['預測時間序列 => 使用多類別或多標籤分類，僅根據文字資料類型預測', 'Forecasting time series => Use multiclass or multilabel classification, predicting only from text data types'],
+    ['監控機器溫度，以在溫度達到特定閾值時打開風扇', 'Monitor machine temperature to turn on a fan when the temperature reaches a specific threshold'],
+    ['確定定型資料集具有母體代表性', 'Ensure the training dataset is representative of the population'],
+    ['確定所有視覺效果都有可供編輯程式讀取的相關聯文字', 'Ensure all visuals have associated text that can be read by an editor'],
+    ['確定所有視覺效果都有可供螢幕助讀程式讀取的相關聯文字', 'Ensure all visuals have associated text that can be read by a screen reader'],
+    ['確定訓練資料集具有母體代表性', 'Ensure the training dataset is representative of the population'],
+    ['確保所有申請人都有相同的機會', 'Ensure all applicants have the same opportunity'],
+    ['確保開發人員為其建立的解決方案負責', 'Ensure developers are accountable for the solutions they create'],
+    ['確保儲存使用者特殊權限資料的方式安全無虞', 'Ensure privileged user data is stored securely'],
+    ['調整數值變數，將它們保持在一致的數值範圍內', 'Scale numeric variables to keep them within a consistent numeric range'],
+    ['輸取手寫信件中的資料', 'Extract data from handwritten letters'],
+    ['輸取文件中的關鍵字語', 'Extract key phrases from documents'],
+    ['辨識那些文件提供相同主題的資訊', 'Identify which documents provide information about the same topic'],
+    ['辨識哪些檔提供相同主題的資訊', 'Identify which files provide information about the same topic'],
+    ['辨識餐廳的評論為正面或負面', 'Identify restaurant reviews as positive or negative'],
+    ['選取必須包含在模型中的資料列', 'Select the rows that must be included in the model'],
+    ['選擇模型的類型之前', 'Before selecting the model type'],
+    ['擷取手寫信件中的資料', 'Extract data from handwritten letters'],
+    ['擷取文件中的關鍵片語', 'Extract key phrases from documents'],
+    ['轉移具有缺少資料的記錄', 'Move records that have missing data'],
+    ['識別直播影片中的動物品種', 'Identify animal breeds in live video'],
+    ['識別線上商店的異常客戶行為', 'Identify unusual customer behavior in an online store'],
+    ['嚴用自動調整功能，以確保服務能根據需求調整', 'Disable autoscale to prevent the service from scaling based on demand'],
+    ['顯示溫度過高時停止工廠作業', 'Stop factory operations when the temperature is too high']
+  ];
+  const glossary = new Map(glossaryPairs);
+  const chinese = /[\u4e00-\u9fff]/;
+  const englishParen = /\s*[\(（][^()（）]*[A-Za-z][^()（）]*[\)）]/g;
+
+  function clean(value) {
+    return String(value || '')
+      .replace(/\u00a0/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function splitChoice(value) {
+    let text = clean(value)
+      .replace(/^答案\s*[:：]\s*/i, '')
+      .replace(/^((?:[A-Z]|\d+)\.\s*)?\[[x\s]\]\s*/i, (_, prefix) => prefix || '');
+    const match = text.match(/^((?:[A-Z]|\d+)\.\s*)(.+)$/i);
+    return match ? { prefix: match[1], body: clean(match[2]) } : { prefix: '', body: text };
+  }
+
+  function stripEnglishParens(value) {
+    return clean(value).replace(englishParen, '').replace(/\s+/g, ' ').trim();
+  }
+
+  function normalizeExisting(value) {
+    return clean(value)
+      .replace(/（([^（）]*[A-Za-z][^（）]*)）/g, '($1)')
+      .replace(/\s*\(([^()]*)\)\s*\(\1\)/gi, ' ($1)')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  function appendEnglishName(value) {
+    const original = clean(value);
+    if (!original || original === '請選擇' || original === '是' || original === '否') return original;
+    const { prefix, body } = splitChoice(original);
+    if (!body || body === '請選擇' || body === '是' || body === '否') return prefix + body;
+
+    const bodyNormalized = normalizeExisting(body);
+    const punctuation = bodyNormalized.match(/[。；;:：,，]+$/)?.[0] || '';
+    const bodyCore = punctuation ? bodyNormalized.slice(0, -punctuation.length).trim() : bodyNormalized;
+    const base = stripEnglishParens(bodyCore);
+    const english = glossary.get(base) || glossary.get(bodyNormalized);
+    if (english) {
+      return prefix + base + ' (' + english + ')' + punctuation;
+    }
+
+    if (!chinese.test(bodyNormalized)) return prefix + bodyNormalized;
+    return prefix + bodyNormalized;
+  }
+
+  function optionKey(value) {
+    return stripEnglishParens(splitChoice(value).body)
+      .replace(/^答案\s*[:：]\s*/i, '')
+      .replace(/[。；;:：,，]+$/g, '')
+      .toLowerCase();
+  }
+
+  function applyEnglishNames(root = document) {
+    const selector = [
+      '.question-body select option',
+      '.question-body li > input[type="radio"] + label',
+      '.question-body li > input[type="checkbox"] + label',
+      '.question-body .match-token',
+      '.question-body .order-token',
+      '.question-body .matching-item',
+      '.question-body .drag-choice'
+    ].join(',');
+
+    root.querySelectorAll(selector).forEach(element => {
+      if (element.closest('.answer-content')) return;
+      const next = appendEnglishName(element.textContent);
+      if (next && next !== clean(element.textContent)) {
+        element.textContent = next;
+      }
+    });
+
+    root.querySelectorAll('.question-body select').forEach(select => {
+      const seen = new Map();
+      [...select.options].forEach(option => {
+        if (clean(option.textContent) === '請選擇') return;
+        const next = appendEnglishName(option.textContent || option.value);
+        const key = optionKey(next);
+        if (!key) return;
+        if (seen.has(key)) {
+          option.remove();
+          return;
+        }
+        seen.set(key, option);
+        option.textContent = next;
+        option.value = next;
+      });
+    });
+  }
+
+  function runSoon() {
+    window.requestAnimationFrame(() => applyEnglishNames(document));
+  }
+
+  const originalSetupCards = window.setupCards;
+  if (typeof originalSetupCards === 'function') {
+    window.setupCards = function(...args) {
+      const result = originalSetupCards.apply(this, args);
+      runSoon();
+      return result;
+    };
+  }
+
+  const originalStartExam = window.startExam;
+  if (typeof originalStartExam === 'function') {
+    window.startExam = function(...args) {
+      const result = originalStartExam.apply(this, args);
+      runSoon();
+      return result;
+    };
+  }
+
+  const originalShowQuestion = window.showQuestion;
+  if (typeof originalShowQuestion === 'function') {
+    window.showQuestion = function(...args) {
+      const result = originalShowQuestion.apply(this, args);
+      runSoon();
+      return result;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', runSoon);
+  window.addEventListener('load', runSoon);
 })();
 </script>
 </body>
