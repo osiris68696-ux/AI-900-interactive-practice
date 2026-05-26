@@ -17361,7 +17361,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && cleanText(option.textContent) === '請選擇') return;
-        const text = appendTerms(option.textContent || option.value);
+        const text = (window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value);
         const key = optionDedupeKey(text);
         if (!key) return;
         if (seen.has(key)) {
@@ -18139,6 +18139,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     });
   }
 
+  window.ai900AppendEnglishName = appendEnglishName;
+  window.ai900ApplyEnglishNames = applyEnglishNames;
+
   function runSoon() {
     window.requestAnimationFrame(() => applyEnglishNames(document));
   }
@@ -18172,6 +18175,22 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   document.addEventListener('DOMContentLoaded', runSoon);
   window.addEventListener('load', runSoon);
+  document.addEventListener('pointerdown', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) applyEnglishNames(select.closest('.question-card') || document);
+  }, true);
+  document.addEventListener('mousedown', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) applyEnglishNames(select.closest('.question-card') || document);
+  }, true);
+  document.addEventListener('focusin', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) applyEnglishNames(select.closest('.question-card') || document);
+  }, true);
+  document.addEventListener('click', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) applyEnglishNames(select.closest('.question-card') || document);
+  }, true);
 })();
 </script>
 </body>
