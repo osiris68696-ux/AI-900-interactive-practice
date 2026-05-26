@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI-900 合併互動模擬考 v2</title>
 <style>
-:root { --blue:#2563eb; --blue-dark:#1e40af; --ink:#172033; --muted:#667085; --line:#d7deea; --soft:#f6f8fb; --ok:#17803d; --bad:#b42318; --warn:#b7791f; }
+:root { --blue:#2563eb; --blue-dark:#1e40af; --teal:#0f766e; --amber:#b45309; --ink:#172033; --muted:#667085; --line:#d7deea; --soft:#f6f8fb; --ok:#17803d; --bad:#b42318; --warn:#b7791f; }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: "Microsoft JhengHei", "Segoe UI", Arial, sans-serif; color: var(--ink); background: #eef3f8; line-height: 1.6; }
 button, input, select, textarea { font: inherit; }
@@ -14,16 +14,40 @@ button:hover:not(:disabled) { border-color: var(--blue); color: var(--blue-dark)
 button:disabled { opacity: .55; cursor: not-allowed; }
 .primary { background: var(--blue); color: #fff; border-color: var(--blue); }
 .primary:hover:not(:disabled) { background: var(--blue-dark); color: #fff; }
-.app-header { background: #0f2742; color: #fff; padding: 18px 24px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+.app-header { background: #10243b; color: #fff; padding: 18px 24px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,.18); border-top: 4px solid #2aa3c7; }
 .header-inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: space-between; gap: 18px; align-items: center; }
 h1 { margin: 0; font-size: 1.35rem; letter-spacing: 0; }
-.header-stats { display: flex; gap: 16px; flex-wrap: wrap; color: #dbeafe; font-size: .95rem; }
+.header-brand { display: grid; gap: 2px; }
+.header-kicker { color: #b7c8dc; font-size: .85rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.header-stats { display: flex; gap: 10px; flex-wrap: wrap; color: #dbeafe; font-size: .95rem; }
+.header-stats span { border: 1px solid rgba(219,234,254,.22); border-radius: 999px; padding: 5px 10px; background: rgba(255,255,255,.06); }
 .container { max-width: 1180px; margin: 0 auto; padding: 24px; }
 .setup-panel, .exam-panel, .results-panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 22px; box-shadow: 0 4px 18px rgba(20, 36, 64, .08); }
-.setup-grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 16px; margin: 18px 0; }
+.setup-panel { padding: 0; overflow: hidden; }
+.setup-layout { display: grid; grid-template-columns: minmax(0, 1fr) 410px; min-height: 360px; }
+.setup-intro { padding: 34px 34px 30px; border-right: 1px solid var(--line); background: #fbfdff; }
+.setup-kicker { color: var(--teal); font-size: .85rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+.setup-intro h2 { margin: 0 0 10px; font-size: 2rem; line-height: 1.2; color: #10243b; }
+.setup-intro p { max-width: 620px; color: #475467; margin: 0 0 24px; }
+.setup-metrics { display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)); gap: 12px; margin: 24px 0 26px; }
+.metric { border: 1px solid #d8e2ef; border-radius: 8px; padding: 14px 16px; background: #fff; }
+.metric strong { display: block; color: #10243b; font-size: 1.55rem; line-height: 1.2; }
+.metric span { color: var(--muted); font-size: .92rem; }
+.setup-outline { display: grid; gap: 10px; margin-top: 20px; }
+.outline-row { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 10px; align-items: start; color: #475467; }
+.outline-row::before { content: ""; width: 10px; height: 10px; border-radius: 50%; margin-top: 8px; background: #2aa3c7; }
+.outline-row:nth-child(2)::before { background: var(--blue); }
+.outline-row:nth-child(3)::before { background: var(--amber); }
+.setup-controls { padding: 34px; display: flex; flex-direction: column; gap: 20px; }
+.setup-controls h3 { margin: 0; font-size: 1.25rem; color: #10243b; }
+.setup-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin: 0; }
 .field label { display: block; font-weight: 700; margin-bottom: 6px; }
-.field select, .field input[type="number"] { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; background: #fff; }
-.toggle-line { display: flex; gap: 8px; align-items: center; margin-top: 30px; }
+.field select, .field input[type="number"] { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 11px 12px; background: #fff; min-height: 46px; }
+.toggle-line { display: flex; gap: 10px; align-items: center; margin-top: 2px; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: #fbfdff; }
+.toggle-line input { width: 18px; height: 18px; accent-color: var(--blue); }
+.start-actions { margin-top: auto; display: grid; gap: 10px; }
+#start-exam { min-height: 48px; font-weight: 800; }
+.setup-note { color: var(--muted); font-size: .9rem; margin: 0; }
 .exam-layout { display: grid; grid-template-columns: 1fr 270px; gap: 18px; align-items: start; }
 .exam-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
 .toolbar-left, .toolbar-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -71,7 +95,7 @@ body.review-mode .answer-content { display: block; }
 .results-panel { margin: 0 0 16px; }
 .results-panel h2 { margin: 0 0 6px; }
 .actions-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
-@media (max-width: 900px) { .setup-grid, .exam-layout { grid-template-columns: 1fr; } .side-panel { position: static; } .header-inner, .exam-toolbar { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 900px) { .setup-layout, .setup-metrics, .exam-layout { grid-template-columns: 1fr; } .setup-intro { border-right: 0; border-bottom: 1px solid var(--line); } .side-panel { position: static; } .header-inner, .exam-toolbar { align-items: flex-start; flex-direction: column; } }
 
 .blank-select { min-width: 190px; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; background: #fff; margin: 0 6px; cursor: pointer; }
 .keyword-highlight, mark { background: transparent !important; }
@@ -119,21 +143,45 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
 <body>
 <header class="app-header">
   <div class="header-inner">
-    <h1>AI-900 合併互動模擬考</h1>
-    <div class="header-stats"><span>題庫總數：<strong id="total-count">387</strong></span><span>來源：Part 1 + Part 2</span></div>
+    <div class="header-brand">
+      <div class="header-kicker">Microsoft Azure AI Fundamentals</div>
+      <h1>AI-900 互動式考古題</h1>
+    </div>
+    <div class="header-stats"><span>題庫 <strong id="total-count">387</strong> 題</span><span>Part 1 + Part 2</span><span>及格 700</span></div>
   </div>
 </header>
 <main class="container">
   <section id="start-screen" class="setup-panel">
-    <h2>開始模擬考</h2>
-    <p>合併兩份題庫，共 387 題。可依 AI-900 技能範圍抽題、計時、標記複查，交卷後查看答案與解析。</p>
-    <div class="setup-grid">
-      <div class="field"><label for="question-count">題數</label><select id="question-count"><option value="40">40 題</option><option value="45" selected>45 題</option><option value="60">60 題</option><option value="80">80 題</option><option value="all">全部 387 題</option></select></div>
-      <div class="field"><label for="time-limit">時間</label><select id="time-limit"><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60" selected>60 分鐘</option><option value="90">90 分鐘</option><option value="180">180 分鐘</option></select></div>
-      <div class="field"><label for="category-filter">技能範圍</label><select id="category-filter"><option value="all">全部範圍</option><option value="outline-1">AI 工作負載與考量</option><option value="outline-2">機器學習</option><option value="outline-3">電腦視覺</option><option value="outline-4">自然語言處理</option></select></div>
-      <div class="toggle-line"><input type="checkbox" id="shuffle-questions" checked><label for="shuffle-questions">隨機抽題</label></div>
+    <div class="setup-layout">
+      <div class="setup-intro">
+        <div class="setup-kicker">Exam Mode</div>
+        <h2>AI-900 Azure AI Fundamentals</h2>
+        <p>以 60 分鐘、45 題、700 分及格的節奏練習，交卷後只檢視錯題與解析。</p>
+        <div class="setup-metrics">
+          <div class="metric"><strong>45</strong><span>預設題數</span></div>
+          <div class="metric"><strong>60</strong><span>分鐘</span></div>
+          <div class="metric"><strong>700</strong><span>及格分數</span></div>
+        </div>
+        <div class="setup-outline">
+          <div class="outline-row">AI 工作負載與負責任 AI</div>
+          <div class="outline-row">機器學習、電腦視覺、自然語言處理</div>
+          <div class="outline-row">選擇題、是非題、配對題、拖放排序題</div>
+        </div>
+      </div>
+      <div class="setup-controls">
+        <h3>考試設定</h3>
+        <div class="setup-grid">
+          <div class="field"><label for="question-count">題數</label><select id="question-count"><option value="40">40 題</option><option value="45" selected>45 題</option><option value="60">60 題</option><option value="80">80 題</option><option value="all">全部 387 題</option></select></div>
+          <div class="field"><label for="time-limit">時間</label><select id="time-limit"><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60" selected>60 分鐘</option><option value="90">90 分鐘</option><option value="180">180 分鐘</option></select></div>
+          <div class="field"><label for="category-filter">技能範圍</label><select id="category-filter"><option value="all">全部範圍</option><option value="outline-1">AI 工作負載與考量</option><option value="outline-2">機器學習</option><option value="outline-3">電腦視覺</option><option value="outline-4">自然語言處理</option></select></div>
+          <div class="toggle-line"><input type="checkbox" id="shuffle-questions" checked><label for="shuffle-questions">隨機抽題</label></div>
+        </div>
+        <div class="start-actions">
+          <button id="start-exam" class="primary" type="button">開始作答</button>
+          <p class="setup-note">可依技能範圍集中練習，或使用全部範圍模擬正式考試。</p>
+        </div>
+      </div>
     </div>
-    <button id="start-exam" class="primary" type="button">開始作答</button>
   </section>
 
   <section id="exam-shell" hidden>
