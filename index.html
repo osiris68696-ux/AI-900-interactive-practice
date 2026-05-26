@@ -153,6 +153,354 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
 @media (max-width: 760px) { .blank-select { width: 100%; margin: 8px 0; } .matching-container, .matching-answer-area { grid-template-columns: 1fr; } .timer-floating { top: auto; bottom: 12px; right: 12px; } }
 @media (max-width: 760px) { .score-report-header, .score-summary { grid-template-columns: 1fr; display: grid; padding: 22px; } .score-main { border-right: 0; border-bottom: 1px solid #dbe5f1; padding: 0 0 20px; } .score-stats { grid-template-columns: 1fr; } }
 
+:root {
+  --poke-blue: #2f5fca;
+  --poke-blue-dark: #173a82;
+  --poke-yellow: #ffcb05;
+  --poke-yellow-soft: #fff4b8;
+  --poke-red: #e3350d;
+  --poke-purple: #6950a1;
+  --poke-purple-dark: #33215f;
+}
+body {
+  background:
+    linear-gradient(180deg, #f6fbff 0%, #edf6ff 52%, #fff9dc 100%);
+}
+.app-header {
+  background: linear-gradient(135deg, #1d4ea9 0%, #15356e 58%, #302465 100%);
+  border-top: 6px solid var(--poke-yellow);
+  box-shadow: 0 4px 18px rgba(23, 58, 130, .26);
+}
+.app-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--poke-red), var(--poke-yellow), var(--poke-blue), var(--poke-purple));
+}
+.header-kicker { color: #fff0a8; }
+.header-stats span {
+  border-color: rgba(255, 203, 5, .42);
+  background: rgba(255, 255, 255, .1);
+  color: #fff8cf;
+}
+.setup-panel, .exam-panel, .results-panel {
+  border-color: #b8ccf7;
+  box-shadow: 0 18px 36px rgba(35, 68, 133, .13);
+}
+.setup-intro {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.96) 0%, rgba(255,246,190,.95) 50%, rgba(232,242,255,.98) 100%),
+    repeating-linear-gradient(135deg, rgba(47,95,202,.08) 0 1px, transparent 1px 18px);
+  border-right-color: #b8ccf7;
+}
+.setup-kicker {
+  color: var(--poke-red);
+  letter-spacing: .12em;
+}
+.setup-intro h2 {
+  color: var(--poke-blue-dark);
+}
+.setup-metrics {
+  margin-bottom: 18px;
+}
+.metric {
+  border: 2px solid #f0cc33;
+  background: #fffef6;
+  box-shadow: inset 0 4px 0 rgba(255, 203, 5, .35);
+}
+.metric strong {
+  color: var(--poke-blue-dark);
+}
+.setup-outline {
+  border: 1px solid rgba(47, 95, 202, .22);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, .72);
+}
+.outline-row::before {
+  background: linear-gradient(180deg, var(--poke-red) 0 45%, #fff 45% 55%, var(--poke-blue-dark) 55% 100%);
+  box-shadow: 0 0 0 1px rgba(16, 36, 59, .35);
+}
+.setup-controls {
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+.setup-controls h3 {
+  color: var(--poke-blue-dark);
+}
+.field select, .field input[type="number"], .blank-select, .question-body input[type="text"], .question-body textarea, .question-body select {
+  border-color: #b8ccf7;
+}
+.field select:focus, .field input[type="number"]:focus, .blank-select:focus, .question-body input[type="text"]:focus, .question-body textarea:focus, .question-body select:focus {
+  outline: 3px solid rgba(255, 203, 5, .34);
+  border-color: var(--poke-blue);
+}
+.toggle-line {
+  border-color: #b8ccf7;
+  background: #fffdf0;
+}
+.toggle-line input {
+  accent-color: var(--poke-red);
+}
+.primary {
+  background: var(--poke-yellow);
+  border-color: var(--poke-blue-dark);
+  color: #172033;
+  box-shadow: 0 3px 0 var(--poke-blue-dark);
+}
+.primary:hover:not(:disabled) {
+  background: #ffd84f;
+  color: #172033;
+  transform: translateY(-1px);
+}
+.status-pill, .timer-floating {
+  border-color: #b8ccf7;
+  background: #fffdf0;
+  color: var(--poke-blue-dark);
+}
+body:not(.exam-active) .timer-floating {
+  display: none;
+}
+.progress-fill {
+  background: linear-gradient(90deg, var(--poke-yellow), var(--poke-red), var(--poke-purple));
+}
+.question-card {
+  border-color: #c6d5f6;
+  border-left-color: var(--poke-yellow);
+  box-shadow: 0 12px 26px rgba(35, 68, 133, .12);
+}
+.question-title {
+  color: var(--poke-blue-dark);
+}
+.exam-number {
+  color: var(--poke-red);
+}
+.question-body ul:has(> li > input[type="radio"]), .question-body ul:has(> li > input[type="checkbox"]), .ordering-ui {
+  border-top-color: #a9c3f4;
+}
+.question-body li > input[type="radio"] + label, .question-body li > input[type="checkbox"] + label,
+.yn-options button, .match-token, .order-token {
+  border-color: var(--poke-blue);
+  background: var(--poke-blue);
+  color: #fff;
+}
+.question-body li > input[type="radio"]:checked + label, .question-body li > input[type="checkbox"]:checked + label,
+.yn-options button:hover:not(:disabled), .yn-options button.selected, .match-token.selected, .order-token.selected {
+  background: var(--poke-yellow);
+  border-color: var(--poke-blue-dark);
+  color: #172033;
+  box-shadow: 0 0 0 2px rgba(255, 203, 5, .35);
+}
+.match-drop-zone, .order-slot {
+  border-color: #91a9d5;
+  background: #f8fbff;
+}
+.match-drop-zone.filled, .order-slot.filled {
+  border-color: var(--poke-blue);
+  background: #fff7ce;
+}
+.side-panel {
+  border-color: #b8ccf7;
+}
+.nav-grid button.active {
+  background: var(--poke-blue-dark);
+  border-color: var(--poke-blue-dark);
+}
+.nav-grid button.answered {
+  border-color: var(--poke-yellow);
+  box-shadow: inset 0 -3px 0 var(--poke-yellow);
+}
+.score-report {
+  border-color: #b8ccf7;
+  box-shadow: 0 18px 36px rgba(35, 68, 133, .13);
+}
+.score-report-header {
+  background: linear-gradient(135deg, #fff7c8 0%, #edf5ff 62%, #f0e9ff 100%);
+  border-bottom: 4px solid var(--poke-yellow);
+}
+.score-report h2 {
+  color: var(--poke-blue-dark);
+}
+.score-report .cert-name {
+  color: var(--poke-red);
+}
+.score-note-card, .score-stat {
+  border-color: #b8ccf7;
+}
+.wrong-review-heading::before {
+  background: linear-gradient(180deg, var(--poke-purple), var(--poke-red));
+}
+.pokemon-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.pokemon-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 118px;
+  padding: 16px;
+  border: 2px solid;
+  border-radius: 8px;
+  box-shadow: 0 12px 24px rgba(35, 68, 133, .12);
+}
+.pokemon-art {
+  flex: 0 0 138px;
+  width: 138px;
+  height: 116px;
+  object-fit: contain;
+  display: block;
+}
+.gengar-art {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.pikachu-art {
+  flex-basis: 154px;
+  width: 154px;
+  height: 112px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.pikachu-card {
+  border-color: #e6bc00;
+  background: linear-gradient(135deg, #fff9cb 0%, #ffffff 100%);
+}
+.gengar-card {
+  border-color: #7554b6;
+  background: linear-gradient(135deg, #f2ecff 0%, #ffffff 100%);
+}
+.pokemon-face {
+  position: relative;
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid #172033;
+}
+.pikachu-face {
+  background: #ffdd3d;
+  box-shadow: inset -8px -10px 0 rgba(175, 119, 0, .16);
+}
+.poke-ear {
+  position: absolute;
+  top: -35px;
+  width: 19px;
+  height: 55px;
+  background: #ffdd3d;
+  border: 3px solid #172033;
+  border-bottom: 0;
+  border-radius: 18px 18px 8px 8px;
+}
+.poke-ear::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  height: 22px;
+  border-radius: 18px 18px 6px 6px;
+  background: #172033;
+}
+.poke-ear.left { left: 9px; transform: rotate(-25deg); }
+.poke-ear.right { right: 9px; transform: rotate(25deg); }
+.poke-eye {
+  position: absolute;
+  top: 27px;
+  width: 9px;
+  height: 12px;
+  border-radius: 50%;
+  background: #172033;
+}
+.poke-eye.left { left: 21px; }
+.poke-eye.right { right: 21px; }
+.poke-cheek {
+  position: absolute;
+  top: 42px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+.poke-cheek.left { left: 8px; }
+.poke-cheek.right { right: 8px; }
+.poke-mouth {
+  position: absolute;
+  left: 31px;
+  top: 43px;
+  width: 14px;
+  height: 10px;
+  border-bottom: 3px solid #172033;
+  border-radius: 0 0 14px 14px;
+}
+.gengar-face {
+  background: #6950a1;
+  border-color: #2c1f4e;
+  box-shadow: inset -8px -10px 0 rgba(44, 31, 78, .28);
+}
+.gengar-ear {
+  position: absolute;
+  top: -14px;
+  width: 30px;
+  height: 30px;
+  background: #6950a1;
+  border: 3px solid #2c1f4e;
+  border-radius: 4px;
+}
+.gengar-ear.left { left: 8px; transform: rotate(45deg) skew(-8deg, -8deg); }
+.gengar-ear.right { right: 8px; transform: rotate(45deg) skew(8deg, 8deg); }
+.gengar-eye {
+  position: absolute;
+  top: 28px;
+  width: 20px;
+  height: 10px;
+  background: #ff6464;
+  border: 2px solid #2c1f4e;
+  border-radius: 80% 20% 80% 20%;
+}
+.gengar-eye.left { left: 14px; transform: rotate(16deg); }
+.gengar-eye.right { right: 14px; transform: rotate(-16deg) scaleX(-1); }
+.gengar-grin {
+  position: absolute;
+  left: 19px;
+  bottom: 15px;
+  width: 38px;
+  height: 13px;
+  border: 2px solid #2c1f4e;
+  border-radius: 0 0 24px 24px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 7px, #2c1f4e 7px 9px),
+    #fff;
+}
+.pokemon-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.pokemon-copy strong {
+  color: var(--poke-blue-dark);
+  font-size: 1.05rem;
+}
+.gengar-card .pokemon-copy strong {
+  color: var(--poke-purple-dark);
+}
+.pokemon-copy span {
+  color: #475467;
+  font-size: .92rem;
+  line-height: 1.45;
+}
+@media (max-width: 760px) {
+  .pokemon-duo { grid-template-columns: 1fr; }
+  .pokemon-card { min-height: 104px; }
+  .pokemon-art { flex-basis: 112px; width: 112px; height: 94px; }
+}
+
 </style>
 </head>
 <body>
@@ -181,6 +529,22 @@ body.review-mode .wrong-review-card .answer-content, body.review-mode .wrong-rev
           <div class="outline-row">AI 工作負載與負責任 AI</div>
           <div class="outline-row">機器學習、電腦視覺、自然語言處理</div>
           <div class="outline-row">選擇題、是非題、配對題、拖放排序題</div>
+        </div>
+        <div class="pokemon-duo" aria-label="寶可夢風格角色展示">
+          <div class="pokemon-card pikachu-card">
+            <img class="pokemon-art pikachu-art" src="assets/pikachu-transparent.png" alt="皮卡丘 Pikachu">
+            <div class="pokemon-copy">
+              <strong>皮卡丘 Pikachu</strong>
+              <span>快速暖身，準備放電作答。</span>
+            </div>
+          </div>
+          <div class="pokemon-card gengar-card">
+            <img class="pokemon-art gengar-art" src="assets/gengar.gif" alt="耿鬼 Gengar">
+            <div class="pokemon-copy">
+              <strong>耿鬼 Gengar</strong>
+              <span>專門盯住錯題與觀念死角。</span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="setup-controls">
