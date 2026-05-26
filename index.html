@@ -18109,7 +18109,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       '.question-body li > input[type="checkbox"] + label',
       '.question-body .match-token',
       '.question-body .order-token',
-      '.question-body .matching-item',
       '.question-body .drag-choice'
     ].join(',');
 
@@ -18139,11 +18138,63 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     });
   }
 
+  let repairedMatchToken = null;
+
+  function splitMatchChoice(value) {
+    const text = clean(value);
+    const match = text.match(/^([A-Z]|\d+)\.?\s*(.*)$/i);
+    if (!match) return { letter: text.slice(0, 1), label: text };
+    return { letter: match[1].toUpperCase(), label: clean(match[2] || text) };
+  }
+
+  function assignRepairedMatch(zone, token) {
+    const area = zone.closest('.matching-answer-area');
+    const input = area?.querySelector('input[type="text"]');
+    if (!area || !input || !token) return;
+    input.value = token.dataset.letter || '';
+    zone.dataset.value = input.value;
+    zone.textContent = token.textContent;
+    zone.classList.add('filled');
+    if (typeof window.updateProgress === 'function') window.updateProgress();
+  }
+
+  function repairMatchingTokens(root = document) {
+    root.querySelectorAll('.question-card').forEach(card => {
+      if (!card.querySelector('.matching-answer-area')) return;
+      card.querySelectorAll('.matching-item').forEach(item => {
+        if (item.querySelector('.match-token')) return;
+        const choice = splitMatchChoice(item.textContent);
+        if (!choice.label) return;
+        item.innerHTML = '';
+        const token = document.createElement('button');
+        token.type = 'button';
+        token.className = 'match-token';
+        token.draggable = true;
+        token.dataset.letter = choice.letter;
+        token.dataset.label = choice.label;
+        token.textContent = choice.letter + '. ' + appendEnglishName(choice.label);
+        token.addEventListener('click', () => {
+          card.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
+          token.classList.add('selected');
+          repairedMatchToken = token;
+        });
+        token.addEventListener('dragstart', event => {
+          repairedMatchToken = token;
+          event.dataTransfer?.setData('text/plain', token.dataset.letter || '');
+        });
+        item.appendChild(token);
+      });
+    });
+  }
+
   window.ai900AppendEnglishName = appendEnglishName;
   window.ai900ApplyEnglishNames = applyEnglishNames;
 
   function runSoon() {
-    window.requestAnimationFrame(() => applyEnglishNames(document));
+    window.requestAnimationFrame(() => {
+      applyEnglishNames(document);
+      repairMatchingTokens(document);
+    });
   }
 
   const originalSetupCards = window.setupCards;
@@ -18188,6 +18239,18 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (select) applyEnglishNames(select.closest('.question-card') || document);
   }, true);
   document.addEventListener('click', event => {
+    const token = event.target.closest?.('.question-body .match-token');
+    if (token) {
+      repairedMatchToken = token;
+      token.closest('.question-card')?.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
+      token.classList.add('selected');
+      return;
+    }
+    const zone = event.target.closest?.('.question-body .match-drop-zone');
+    if (zone && repairedMatchToken) {
+      assignRepairedMatch(zone, repairedMatchToken);
+      return;
+    }
     const select = event.target.closest?.('.question-body select');
     if (select) applyEnglishNames(select.closest('.question-card') || document);
   }, true);
