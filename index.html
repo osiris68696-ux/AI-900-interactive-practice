@@ -17802,7 +17802,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['回應上限', 'Max Response'], ['家庭收入', 'Household Income'], ['房價類別', 'House Price Category'], ['機器學習（叢集）', 'Machine Learning (Clustering)']
   ].sort((a, b) => b[0].length - a[0].length);
   const exactTermMap = new Map(exactTermMappings);
-  function escapeRegExp(value) { return value.replace(/[|\\{}()[\]^$+*?.]/g, '\\</body>'); }
+  function escapeRegExp(value) { return value.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&'); }
   const termPattern = new RegExp(termMappings.map(([term]) => escapeRegExp(term)).join('|'), 'g');
   function normalizeOptionText(text) {
     let next = cleanText(text);
@@ -17991,8 +17991,21 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   function parseOrderAnswers(card) {
     const answerItems = [...card.querySelectorAll('.answer-content .answer ol li')].map(li => cleanText(li.textContent)).filter(Boolean);
     if (answerItems.length) return answerItems;
-    const answerText = card.querySelector('.answer-content .answer')?.innerText || '';
-    const workflowAnswers = [...answerText.matchAll(/工作\s*\d+\s*[:：]\s*([^\n\r]+)/g)].map(match => cleanText(match[1])).filter(Boolean);
+    const answer = card.querySelector('.answer-content .answer');
+    const answerText = answer?.innerText || '';
+    const answerLineText = (answer?.innerHTML || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ');
+    const numericOrder = answerText.match(/答案(?:順序)?\s*[:：]\s*([0-9\s,，、]+)/);
+    if (numericOrder) {
+      const bodyChoices = [...card.querySelectorAll('.question-body li')].map(li => cleanText(li.textContent)).filter(Boolean);
+      const byNumber = new Map();
+      bodyChoices.forEach(choice => {
+        const match = choice.match(/^(\d+)\s*[.．、)]\s*(.+)$/);
+        if (match) byNumber.set(match[1], sanitizeOptionText(match[2]));
+      });
+      const ordered = numericOrder[1].split(/[,\s，、]+/).map(value => cleanText(value)).filter(Boolean).map(number => byNumber.get(number)).filter(Boolean);
+      if (ordered.length) return ordered;
+    }
+    const workflowAnswers = [...answerLineText.matchAll(/工作\s*\d+\s*[:：]\s*([^\n\r]+)/g)].map(match => cleanText(match[1])).filter(Boolean);
     if (workflowAnswers.length) return workflowAnswers;
     return [...card.querySelectorAll('.question-body ol li')].map(li => cleanText(li.textContent)).filter(text => text && !/步驟\s*\d+\s*位置/.test(text));
   }
@@ -18022,7 +18035,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   function setupOrdering() {
     document.querySelectorAll('.question-card').forEach(card => {
       const title = card.querySelector('.question-title')?.textContent || '';
-      if (!title.includes('拖放排序') || card.dataset.orderReady === 'true') return;
+      if (!title.includes('排序') || card.dataset.orderReady === 'true') return;
       const body = card.querySelector('.question-body');
       if (!body) return;
       const answers = parseOrderAnswers(card);
@@ -18825,6 +18838,235 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const select = event.target.closest?.('select.blank-select');
     if (select) limitBlankSelects(select.closest('.question-card') || document);
   }, true);
+})();
+</script>
+<script id="ai900-plain-matching-repair">
+(function () {
+  const PLACEHOLDER = '點擊左側選項後，再點擊此處放置';
+  let activePlainMatchToken = null;
+
+  function clean(value) {
+    return (value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function stripEnglish(value) {
+    return clean(value)
+      .replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g, '')
+      .replace(/[。；;，,]+$/g, '')
+      .trim();
+  }
+
+  function optionKey(value) {
+    return stripEnglish(value).replace(/[()（）\s]/g, '').toLowerCase();
+  }
+
+  function displayOption(value) {
+    const base = stripEnglish(value);
+    if (!base) return '';
+    const append = window.ai900AppendEnglishName;
+    return typeof append === 'function' ? append(base) : base;
+  }
+
+  function uniqueOptions(values) {
+    const seen = new Set();
+    const result = [];
+    values.forEach(value => {
+      const base = stripEnglish(value);
+      const key = optionKey(base);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      result.push(base);
+    });
+    return result;
+  }
+
+  function parseOptionsLine(text) {
+    const list = clean(text).replace(/^提供的選項[^:：]*[:：]\s*/i, '');
+    return uniqueOptions(list.split(/[、,，]/).map(clean).filter(Boolean));
+  }
+
+  function parsePlainMatchingBody(card) {
+    const title = card.querySelector('.question-title')?.textContent || '';
+    if (!/配對/.test(title) || /排序/.test(title)) return null;
+    const body = card.querySelector('.question-body');
+    if (!body || body.querySelector('.matching-answer-area, .ordering-ui, .order-slot')) return null;
+
+    const paragraphs = Array.from(body.children).filter(el => el.tagName === 'P');
+    let inAnswerArea = false;
+    let markerElement = null;
+    let optionsElement = null;
+    let options = [];
+    const rows = [];
+
+    paragraphs.forEach(p => {
+      const text = clean(p.textContent);
+      if (!text) return;
+
+      if (/^作答區|^答案區/.test(text)) {
+        inAnswerArea = true;
+        markerElement = markerElement || p;
+        return;
+      }
+
+      if (/^提供的選項/.test(text)) {
+        optionsElement = p;
+        options = parseOptionsLine(text);
+        inAnswerArea = false;
+        return;
+      }
+
+      if (!inAnswerArea) return;
+      const match = text.match(/^(.+?)\s*[:：]\s*(.+)$/);
+      if (!match) return;
+      const label = clean(match[1]).replace(/[：:]+$/g, '');
+      const correct = stripEnglish(match[2]);
+      if (label && correct) rows.push({ label, correct, element: p });
+    });
+
+    if (!rows.length || !options.length) return null;
+    rows.forEach(row => { if (!options.some(option => optionKey(option) === optionKey(row.correct))) options.push(row.correct); });
+    return { body, rows, options: uniqueOptions(options), markerElement, optionsElement };
+  }
+
+  function assignMatch(zone, token) {
+    const area = zone.closest('.matching-answer-area');
+    const input = area?.querySelector('input[type="text"]');
+    if (!area || !input || !token) return;
+    input.value = token.dataset.letter || '';
+    zone.dataset.value = input.value;
+    zone.textContent = token.textContent;
+    zone.classList.add('filled');
+    if (typeof window.updateProgress === 'function') window.updateProgress();
+  }
+
+  function clearMatch(zone) {
+    const area = zone.closest('.matching-answer-area');
+    const input = area?.querySelector('input[type="text"]');
+    if (!area || !input) return;
+    input.value = '';
+    zone.dataset.value = '';
+    zone.textContent = PLACEHOLDER;
+    zone.classList.remove('filled');
+    if (typeof window.updateProgress === 'function') window.updateProgress();
+  }
+
+  function makeToken(card, option) {
+    const item = document.createElement('li');
+    item.className = 'matching-item';
+    const token = document.createElement('button');
+    token.type = 'button';
+    token.className = 'match-token';
+    token.draggable = true;
+    token.dataset.letter = stripEnglish(option).toUpperCase();
+    token.dataset.label = stripEnglish(option);
+    token.textContent = displayOption(option);
+    token.addEventListener('click', () => {
+      card.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
+      token.classList.add('selected');
+      activePlainMatchToken = token;
+    });
+    token.addEventListener('dragstart', event => {
+      activePlainMatchToken = token;
+      event.dataTransfer?.setData('text/plain', token.dataset.letter || '');
+    });
+    item.appendChild(token);
+    return item;
+  }
+
+  function makeDropArea(card, row, index) {
+    const area = document.createElement('div');
+    area.className = 'matching-answer-area';
+    area.dataset.correct = stripEnglish(row.correct).toUpperCase();
+
+    const label = document.createElement('label');
+    const inputId = (card.id || 'plain-match') + '-plain-match-' + index;
+    label.setAttribute('for', inputId);
+    label.textContent = row.label + '：';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = inputId;
+    input.tabIndex = -1;
+
+    const zone = document.createElement('button');
+    zone.type = 'button';
+    zone.className = 'match-drop-zone';
+    zone.textContent = PLACEHOLDER;
+    zone.addEventListener('click', () => {
+      if (activePlainMatchToken) assignMatch(zone, activePlainMatchToken);
+      else if (input.value) clearMatch(zone);
+    });
+    zone.addEventListener('dragover', event => { event.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', event => {
+      event.preventDefault();
+      zone.classList.remove('drag-over');
+      const value = event.dataTransfer?.getData('text/plain') || '';
+      const token = activePlainMatchToken || [...card.querySelectorAll('.match-token')].find(btn => btn.dataset.letter === value);
+      if (token) assignMatch(zone, token);
+    });
+
+    area.append(label, input, zone);
+    return area;
+  }
+
+  function repairPlainMatchingQuestions(root = document) {
+    root.querySelectorAll('.question-card').forEach(card => {
+      if (card.dataset.plainMatchingReady === 'true') return;
+      const parsed = parsePlainMatchingBody(card);
+      if (!parsed) return;
+
+      const ui = document.createElement('div');
+      ui.className = 'matching-container ai900-plain-matching-ui';
+
+      const optionsColumn = document.createElement('div');
+      optionsColumn.className = 'matching-column';
+      const optionsTitle = document.createElement('h4');
+      optionsTitle.textContent = '提供的選項';
+      const list = document.createElement('ul');
+      list.className = 'matching-list';
+      parsed.options.forEach(option => list.appendChild(makeToken(card, option)));
+      optionsColumn.append(optionsTitle, list);
+
+      const answerColumn = document.createElement('div');
+      answerColumn.className = 'matching-column';
+      const answerTitle = document.createElement('h4');
+      answerTitle.textContent = '作答區';
+      answerColumn.appendChild(answerTitle);
+      parsed.rows.forEach((row, index) => answerColumn.appendChild(makeDropArea(card, row, index + 1)));
+
+      ui.append(optionsColumn, answerColumn);
+      parsed.body.insertBefore(ui, parsed.rows[0]?.element || parsed.optionsElement || null);
+
+      [parsed.markerElement, parsed.optionsElement, ...parsed.rows.map(row => row.element)].forEach(element => {
+        if (!element) return;
+        element.hidden = true;
+        element.dataset.ai900PlainMatchingSource = 'true';
+      });
+
+      card.dataset.plainMatchingReady = 'true';
+    });
+  }
+
+  function runRepair(root = document) {
+    repairPlainMatchingQuestions(root);
+    if (typeof window.ai900ApplyEnglishNames === 'function') window.ai900ApplyEnglishNames(root);
+  }
+
+  ['setupCards', 'startExam', 'showQuestion'].forEach(name => {
+    const original = window[name];
+    if (typeof original !== 'function' || original.__plainMatchingWrapped) return;
+    window[name] = function (...args) {
+      const result = original.apply(this, args);
+      window.requestAnimationFrame(() => runRepair(document));
+      return result;
+    };
+    window[name].__plainMatchingWrapped = true;
+  });
+
+  document.addEventListener('DOMContentLoaded', () => runRepair(document));
+  window.addEventListener('load', () => runRepair(document));
+  window.ai900RepairPlainMatchingQuestions = runRepair;
 })();
 </script>
 <script id="ai900-review-button-feedback">
