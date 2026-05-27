@@ -65,8 +65,8 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 .question-body li { margin: 10px 0; }
 .question-body label { margin-left: 8px; cursor: pointer; }
 .question-body input[type="radio"], .question-body input[type="checkbox"] { transform: scale(1.15); }
-.question-body ul:has(> li > input[type="radio"]), .question-body ul:has(> li > input[type="checkbox"]) { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; border-top: 1px solid #a9d8eb; padding-top: 16px; margin-top: 18px; }
-.question-body ul:has(> li > input[type="radio"]) li, .question-body ul:has(> li > input[type="checkbox"]) li { margin: 0; max-width: 100%; }
+.question-body ul:has(> li > input[type="radio"]), .question-body ul:has(> li > input[type="checkbox"]) { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; border-top: 1px solid #a9d8eb; padding-top: 16px; margin-top: 18px; }
+.question-body ul:has(> li > input[type="radio"]) li, .question-body ul:has(> li > input[type="checkbox"]) li { margin: 0; max-width: 100%; width: 100%; }
 .question-body li > input[type="radio"], .question-body li > input[type="checkbox"] { position: absolute; opacity: 0; width: 1px; height: 1px; transform: none; }
 .question-body li > input[type="radio"] + label, .question-body li > input[type="checkbox"] + label { display: inline-flex; align-items: center; justify-content: flex-start; max-width: 100%; min-height: 40px; margin-left: 0; border: 1px solid #2aa3c7; background: #2aa3c7; color: #fff; border-radius: 5px; padding: 8px 12px; line-height: 1.4; overflow-wrap: anywhere; }
 .question-body li > input[type="radio"] + label .eng-word, .question-body li > input[type="radio"] + label .eng-abbr, .question-body li > input[type="checkbox"] + label .eng-word, .question-body li > input[type="checkbox"] + label .eng-abbr { color: inherit; }
