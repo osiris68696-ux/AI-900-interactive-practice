@@ -257,6 +257,47 @@ body {
   color: #172033;
   transform: translateY(-1px);
 }
+#prev-question, #mark-review,
+.actions-row button, .score-actions button {
+  background: #fff7ce;
+  border: 2px solid var(--poke-blue-dark);
+  color: var(--poke-blue-dark);
+  box-shadow: 0 3px 0 var(--poke-blue-dark);
+  font-weight: 800;
+}
+#prev-question:hover:not(:disabled), #mark-review:hover:not(:disabled),
+.actions-row button:hover:not(:disabled), .score-actions button:hover:not(:disabled) {
+  background: var(--poke-yellow);
+  border-color: var(--poke-blue-dark);
+  color: #172033;
+  transform: translateY(-1px);
+}
+#prev-question:disabled, #mark-review:disabled,
+.actions-row button:disabled, .score-actions button:disabled {
+  background: #f7fbff;
+  border-color: #b8ccf7;
+  color: #8a97b3;
+  box-shadow: none;
+  transform: none;
+}
+#mark-review.selected {
+  background: var(--poke-red);
+  border-color: var(--poke-blue-dark);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--poke-blue-dark), 0 0 0 3px rgba(255, 203, 5, .45);
+}
+.nav-grid button.flagged {
+  background: #fff7ce;
+  border-color: var(--poke-red);
+  color: var(--poke-blue-dark);
+  box-shadow: inset 0 -3px 0 var(--poke-red);
+}
+.nav-grid button.active.flagged {
+  background: var(--poke-red);
+  border-color: var(--poke-blue-dark);
+  color: #fff;
+  box-shadow: inset 0 -3px 0 var(--poke-yellow);
+}
 .status-pill, .timer-floating {
   border-color: #b8ccf7;
   background: #fffdf0;
@@ -18683,6 +18724,44 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     }
     const select = event.target.closest?.('.question-body select');
     if (select) applyEnglishNames(select.closest('.question-card') || document);
+  }, true);
+})();
+</script>
+<script id="ai900-review-button-feedback">
+(function () {
+  function syncReviewButton() {
+    const btn = document.getElementById('mark-review');
+    if (!btn) return;
+    const selected = btn.classList.contains('selected');
+    btn.textContent = selected ? '已標記複查' : '標記複查';
+    btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  }
+
+  function wrapAfter(name) {
+    const original = window[name];
+    if (typeof original !== 'function' || original.__reviewFeedbackWrapped) return;
+    window[name] = function (...args) {
+      const result = original.apply(this, args);
+      syncReviewButton();
+      return result;
+    };
+    window[name].__reviewFeedbackWrapped = true;
+  }
+
+  wrapAfter('startExam');
+  wrapAfter('showQuestion');
+  wrapAfter('updateProgress');
+
+  document.addEventListener('DOMContentLoaded', () => {
+    syncReviewButton();
+    const btn = document.getElementById('mark-review');
+    if (btn) btn.addEventListener('click', () => window.setTimeout(syncReviewButton, 0));
+  });
+
+  document.addEventListener('click', event => {
+    if (event.target.closest?.('#mark-review, #prev-question, #next-question, #question-nav button')) {
+      window.setTimeout(syncReviewButton, 0);
+    }
   }, true);
 })();
 </script>
