@@ -573,7 +573,7 @@ body:not(.exam-active) .timer-floating {
         </div>
         <div class="pokemon-duo" aria-label="寶可夢風格角色展示">
           <div class="pokemon-card pikachu-card">
-            <img class="pokemon-art pikachu-art" src="assets/pikachu-transparent.png" alt="皮卡丘 Pikachu">
+            <img class="pokemon-art pikachu-art" src="assets/pikachu-transparent.gif" alt="皮卡丘 Pikachu">
             <div class="pokemon-copy">
               <strong>皮卡丘 Pikachu</strong>
               <span>快速暖身，準備放電作答。</span>
@@ -17713,8 +17713,18 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     for (let i = items.length - 1; i > 0; i--) { const j = (i * 7 + 3) % (i + 1); [items[i], items[j]] = [items[j], items[i]]; }
     return items;
   }
+  function pickFourBlankOptions(answer, candidates, fallback) {
+    const correct = uniqueOptions([answer])[0];
+    const correctKey = optionDedupeKey(correct || '');
+    const distractors = uniqueOptions(candidates || []).filter(option => optionDedupeKey(option) !== correctKey);
+    let picked = shuffleOptions(distractors).slice(0, 3);
+    if (picked.length < 3) {
+      const extra = uniqueOptions(fallback || []).filter(option => optionDedupeKey(option) !== correctKey && !picked.some(item => optionDedupeKey(item) === optionDedupeKey(option)));
+      picked = picked.concat(shuffleOptions(extra).slice(0, 3 - picked.length));
+    }
+    return shuffleOptions(uniqueOptions([correct, ...picked])).slice(0, 4);
+  }
   function inferBlankOptions(card, answer, providedOptions) {
-    if (providedOptions && providedOptions.length > 1) return uniqueOptions(providedOptions);
     const meta = cleanText(card.querySelector('.question-meta')?.innerText || '');
     const body = cleanText(card.querySelector('.question-body')?.innerText || '');
     const text = meta + ' ' + body + ' ' + answer;
@@ -17729,9 +17739,10 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     else if (/機器學習|分類|迴歸|叢集|模型|異常/.test(text)) pool = ml;
     else if (/視覺|影像|臉部|OCR|文件|車輛位置/.test(text)) pool = vision;
     else if (/生成式|OpenAI|GPT|大型語言|LLM|token|模型聊天/.test(text)) pool = genai;
-    pool = uniqueOptions([answer, ...pool]);
-    if (pool.length < 4) pool = uniqueOptions([answer, ...responsibleAI, ...nlp, ...ml, ...vision, ...genai]).slice(0, 8);
-    return shuffleOptions(pool).slice(0, Math.max(4, Math.min(pool.length, 8)));
+    const fallback = uniqueOptions([...responsibleAI, ...nlp, ...ml, ...vision, ...genai]);
+    if (providedOptions && providedOptions.length > 1) return pickFourBlankOptions(answer, providedOptions, fallback);
+    pool = uniqueOptions(pool);
+    return pickFourBlankOptions(answer, pool, fallback);
   }
   function makeBlankControl(card, target, options) {
     const answer = getAnswerText(card);
@@ -18724,6 +18735,90 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     }
     const select = event.target.closest?.('.question-body select');
     if (select) applyEnglishNames(select.closest('.question-card') || document);
+  }, true);
+})();
+</script>
+<script id="ai900-blank-select-four-options">
+(function () {
+  function clean(value) {
+    return (value || '').replace(/\s+/g, ' ').trim();
+  }
+  function stripEnglish(value) {
+    return clean(value).replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g, '');
+  }
+  function optionKey(value) {
+    return stripEnglish(value).replace(/^答案\s*[:：]\s*/i, '').replace(/^[A-E]\.\s*/i, '').replace(/^\d+\.\s*/, '').replace(/[()（）\s]/g, '').toLowerCase();
+  }
+  function shuffle(values) {
+    const items = [...values];
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = (i * 7 + 3) % (i + 1);
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+  }
+  function limitBlankSelects(root = document) {
+    root.querySelectorAll('select.blank-select').forEach(select => {
+      const prompt = [...select.options].find(option => !option.value) || new Option('請選擇', '');
+      const selectedValue = select.value;
+      const correctKey = optionKey(select.dataset.correct || '');
+      const rawOptionCount = [...select.options].filter(option => option.value).length;
+      const seen = new Set();
+      const realOptions = [];
+      [...select.options].forEach(option => {
+        if (!option.value) return;
+        const key = optionKey(option.textContent || option.value);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        realOptions.push({ key, text: option.textContent || option.value, value: option.value });
+      });
+      if (rawOptionCount <= 4) return;
+      const correct = realOptions.find(option => option.key === correctKey) || realOptions[0];
+      const distractors = realOptions.filter(option => option !== correct);
+      const kept = shuffle([correct, ...shuffle(distractors).slice(0, 3)]).slice(0, 4);
+      select.innerHTML = '';
+      select.appendChild(new Option(clean(prompt.textContent) || '請選擇', ''));
+      kept.forEach(option => select.appendChild(new Option(option.text, option.value)));
+      if ([...select.options].some(option => option.value === selectedValue)) select.value = selectedValue;
+    });
+  }
+  function sameAnswer(left, right) {
+    return optionKey(left) === optionKey(right);
+  }
+
+  window.ai900LimitBlankSelects = limitBlankSelects;
+  const originalGradeCard = window.gradeCard;
+  if (typeof originalGradeCard === 'function' && !originalGradeCard.__blankSelectWrapped) {
+    window.gradeCard = function (card) {
+      const result = originalGradeCard.apply(this, arguments);
+      card.querySelectorAll('select.blank-select[data-correct]').forEach(select => {
+        const correct = clean(select.dataset.correct || '');
+        if (!correct) return;
+        result.scorable++;
+        if (sameAnswer(select.value, correct)) result.correct++;
+      });
+      return result;
+    };
+    window.gradeCard.__blankSelectWrapped = true;
+  }
+  ['setupFillBlanks', 'setupCards', 'startExam', 'showQuestion'].forEach(name => {
+    const original = window[name];
+    if (typeof original !== 'function' || original.__blankFourWrapped) return;
+    window[name] = function (...args) {
+      const result = original.apply(this, args);
+      limitBlankSelects(document);
+      return result;
+    };
+    window[name].__blankFourWrapped = true;
+  });
+  document.addEventListener('DOMContentLoaded', () => limitBlankSelects(document));
+  document.addEventListener('focusin', event => {
+    const select = event.target.closest?.('select.blank-select');
+    if (select) limitBlankSelects(select.closest('.question-card') || document);
+  }, true);
+  document.addEventListener('pointerdown', event => {
+    const select = event.target.closest?.('select.blank-select');
+    if (select) limitBlankSelects(select.closest('.question-card') || document);
   }, true);
 })();
 </script>
