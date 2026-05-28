@@ -17737,7 +17737,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const nlp = ['語音辨識', '語音合成', '文字分析', '翻譯', 'Language Understanding', 'Microsoft Bot Framework', 'Power Virtual Agents', 'Azure Bot Service'];
     const ml = ['分類', '二元分類', '多類別分類', '迴歸', '叢集', '異常偵測', '模型定型', '模型評估'];
     const vision = ['電腦視覺', '自訂視覺', '臉部', 'OCR', '文件智慧', '影像分析', '物件偵測'];
-    const genai = ['溫度', '內嵌', '注意力', '轉換器', '完成度', '內容篩選', '基礎知識資料'];
+    const genai = ['OpenAI Codex', 'GPT-3', 'GPT-4', 'DALL-E', 'Whisper', 'GitHub Copilot', '溫度', '內嵌', '注意力', '轉換器', '完成度', '內容篩選', '基礎知識資料'];
     let pool = [];
     if (/責任|負責任|公平|可靠|隱私|透明|包容|權責/.test(text)) pool = responsibleAI;
     else if (/NLP|自然語言|語音|Bot|Language|翻譯|文字/.test(text)) pool = nlp;
@@ -17776,8 +17776,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       });
       const anchors = [...body.querySelectorAll('.blank-anchor')];
       const answerSpans = [...body.querySelectorAll('[data-no-highlight="true"], [data-no-class="true"]')].filter(el => cleanText(el.textContent).length > 0);
+      const englishAnswerSpans = [...body.querySelectorAll('.eng-word, .eng-abbr')].filter(el => cleanText(el.textContent).length > 0);
       const answerKey = comparableTerm(getAnswerText(card));
-      const matchingAnswerSpan = answerSpans.find(el => { const key = comparableTerm(el.textContent); return key && answerKey && (key.includes(answerKey) || answerKey.includes(key)); });
+      const matchingAnswerSpan = [...answerSpans, ...englishAnswerSpans].find(el => { const key = comparableTerm(el.textContent); return key && answerKey && (key.includes(answerKey) || answerKey.includes(key)); });
       if (anchors.length) anchors.forEach(anchor => makeBlankControl(card, anchor, options));
       else if (matchingAnswerSpan || answerSpans.length) makeBlankControl(card, matchingAnswerSpan || answerSpans[0], options);
       card.dataset.fillReady = 'true';
