@@ -16647,15 +16647,15 @@ body:not(.exam-active) .timer-floating {
                     </ul>
                 </div>
                 <div class="answer-content" id="answer-351">
-                    <div class="answer"><strong>答案順序：</strong> 1, 5, 4, 2</div>
+                    <div class="answer"><strong>答案順序：</strong> A, E, D, B</div>
                     <div class="rationale"><strong>解析：</strong>標準的監督式學習流程如下：
                         <ol>
-                            <li><b>(1) 內嵌及準備資料集</b>：這是第一步，載入並清理資料。</li>
-                            <li><b>(5) 將資料隨機分割為訓練資料與驗證資料</b>：準備好資料後，將其分割。</li>
-                            <li><b>(4) 定型模型</b>：使用訓練資料集來訓練演算法。</li>
-                            <li><b>(2) 對驗證資料集評估模型</b>：使用從未見過的驗證資料集來評估模型的效能。</li>
+                            <li><b>(A) 內嵌及準備資料集</b>：這是第一步，載入並清理資料。</li>
+                            <li><b>(E) 將資料隨機分割為訓練資料與驗證資料</b>：準備好資料後，將其分割。</li>
+                            <li><b>(D) 定型模型</b>：使用訓練資料集來訓練演算法。</li>
+                            <li><b>(B) 對驗證資料集評估模型</b>：使用從未見過的驗證資料集來評估模型的效能。</li>
                         </ol>
-                        選項3是錯誤的，不應該用整個原始資料集來評估。
+                        選項 C 是錯誤的，不應該用整個原始資料集來評估。
                     </div>
                     <div class="exam-tip"><strong>考試小技巧：</strong>記住標準流程：準備資料 -> 分割資料 -> 訓練模型 -> 評估模型。</div>
                     <div class="url"><strong>參考資料：</strong> <a
@@ -17995,15 +17995,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const answer = card.querySelector('.answer-content .answer');
     const answerText = answer?.innerText || '';
     const answerLineText = (answer?.innerHTML || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ');
-    const numericOrder = answerText.match(/答案(?:順序)?\s*[:：]\s*([0-9\s,，、]+)/);
-    if (numericOrder) {
+    const orderSequence = answerText.match(/答案(?:順序)?\s*[:：]\s*([A-Z0-9\s,，、]+)/i);
+    if (orderSequence) {
       const bodyChoices = [...card.querySelectorAll('.question-body li')].map(li => cleanText(li.textContent)).filter(Boolean);
-      const byNumber = new Map();
-      bodyChoices.forEach(choice => {
+      const byCode = new Map();
+      bodyChoices.forEach((choice, index) => {
+        byCode.set(String.fromCharCode(65 + index), sanitizeOptionText(choice));
         const match = choice.match(/^(\d+)\s*[.．、)]\s*(.+)$/);
-        if (match) byNumber.set(match[1], sanitizeOptionText(match[2]));
+        if (match) byCode.set(match[1], sanitizeOptionText(match[2]));
       });
-      const ordered = numericOrder[1].split(/[,\s，、]+/).map(value => cleanText(value)).filter(Boolean).map(number => byNumber.get(number)).filter(Boolean);
+      const ordered = orderSequence[1].split(/[,\s，、]+/).map(value => cleanText(value).toUpperCase()).filter(Boolean).map(code => byCode.get(code)).filter(Boolean);
       if (ordered.length) return ordered;
     }
     const workflowAnswers = [...answerLineText.matchAll(/工作\s*\d+\s*[:：]\s*([^\n\r]+)/g)].map(match => cleanText(match[1])).filter(Boolean);
