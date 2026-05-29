@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
@@ -88,6 +88,29 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 body.review-mode .answer-content { display: block; }
 .answer-content { display: none; margin-top: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
 .answer-content.show { display: block; }
+.manual-answer-box {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+.manual-answer-box label {
+  font-weight: 800;
+  color: #172554;
+}
+.manual-answer-box textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fff;
+}
+.manual-answer-box .manual-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: .92rem;
+}
 .answer { border-left: 4px solid var(--ok); padding-left: 12px; font-weight: 700; color: #14532d; }
 .rationale, .exam-tip, .url { margin-top: 12px; }.eng-word, .eng-abbr { color: #475467; font-weight: 700; }
 .yn-options { display: flex; gap: 8px; margin-top: 8px; padding-top: 6px; }
@@ -563,6 +586,407 @@ body:not(.exam-active) .timer-floating {
   .pokemon-art { flex-basis: 112px; width: 112px; height: 94px; }
 }
 
+body {
+  background:
+    radial-gradient(circle at 15% 12%, rgba(61, 151, 255, .32), transparent 32%),
+    radial-gradient(circle at 86% 22%, rgba(152, 80, 255, .34), transparent 30%),
+    linear-gradient(135deg, #071833 0%, #141a55 48%, #35106a 100%);
+}
+.app-header {
+  background: linear-gradient(135deg, #09285d 0%, #17206a 54%, #3d1775 100%);
+  border-top-color: #6ee7ff;
+}
+.app-header::after {
+  background: linear-gradient(90deg, #38bdf8, #8b5cf6, #22d3ee);
+}
+.setup-panel, .exam-panel, .results-panel {
+  border-color: rgba(148, 183, 255, .8);
+  background: rgba(248, 251, 255, .96);
+  box-shadow: 0 24px 48px rgba(5, 12, 36, .28);
+}
+.setup-intro {
+  color: #eaf2ff;
+  border-right-color: rgba(148, 183, 255, .35);
+  background:
+    radial-gradient(circle at 22% 18%, rgba(34, 211, 238, .28), transparent 33%),
+    radial-gradient(circle at 84% 8%, rgba(167, 139, 250, .28), transparent 31%),
+    linear-gradient(145deg, rgba(9, 25, 63, .98) 0%, rgba(23, 25, 84, .98) 52%, rgba(48, 20, 92, .98) 100%);
+}
+.setup-kicker { color: #67e8f9; }
+.setup-intro h2 { color: #ffffff; }
+.setup-intro p, .outline-row { color: #d9e8ff; }
+.metric {
+  border-color: rgba(103, 232, 249, .55);
+  background: rgba(8, 21, 56, .54);
+  box-shadow: inset 0 4px 0 rgba(103, 232, 249, .18);
+}
+.metric strong { color: #ffffff; }
+.metric span { color: #b8c9e9; }
+.setup-outline {
+  border-color: rgba(103, 232, 249, .22);
+  background: rgba(4, 13, 36, .42);
+}
+.outline-row::before {
+  background: linear-gradient(180deg, #38bdf8, #8b5cf6);
+  box-shadow: 0 0 14px rgba(56, 189, 248, .55);
+}
+.outline-row:nth-child(2)::before { background: linear-gradient(180deg, #60a5fa, #a78bfa); }
+.outline-row:nth-child(3)::before { background: linear-gradient(180deg, #22d3ee, #7c3aed); }
+.setup-controls {
+  background: linear-gradient(180deg, rgba(255,255,255,.96) 0%, rgba(241,246,255,.95) 100%);
+}
+.field select, .field input[type="number"], .blank-select, .question-body input[type="text"], .question-body textarea, .question-body select {
+  border-color: #aebff4;
+}
+.field select:focus, .field input[type="number"]:focus, .blank-select:focus, .question-body input[type="text"]:focus, .question-body textarea:focus, .question-body select:focus {
+  outline-color: rgba(139, 92, 246, .26);
+  border-color: #7c3aed;
+}
+.primary {
+  background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 100%);
+  border-color: #15255f;
+  color: #fff;
+}
+.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #67e8f9 0%, #a78bfa 100%);
+  color: #fff;
+}
+.wrong-start-button {
+  background: #eef5ff;
+  border-color: #24427d;
+  color: #172554;
+}
+.wrong-start-button:hover:not(:disabled) {
+  background: #dbeafe;
+  color: #172554;
+}
+.shadow-squad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.shadow-card {
+  min-width: 0;
+  min-height: 154px;
+  padding: 14px;
+  border: 1px solid rgba(103, 232, 249, .42);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 50% 26%, rgba(34, 211, 238, .22), transparent 43%),
+    rgba(4, 13, 36, .48);
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, .13), 0 18px 32px rgba(0, 0, 0, .18);
+  overflow: hidden;
+}
+.shadow-card strong {
+  display: block;
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.shadow-card span {
+  display: block;
+  color: #bdefff;
+  font-size: .86rem;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+.shadow-avatar {
+  position: relative;
+  height: 92px;
+  margin-bottom: 10px;
+  isolation: isolate;
+}
+.shadow-avatar::before {
+  content: "";
+  position: absolute;
+  inset: 12px 22% 2px;
+  border-radius: 44% 44% 18% 18%;
+  background: linear-gradient(180deg, #081322 0%, #020713 100%);
+  box-shadow: 0 0 22px rgba(34, 211, 238, .64), inset 0 0 18px rgba(34, 211, 238, .22);
+}
+.shadow-avatar::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 34px;
+  width: 42px;
+  height: 8px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, #dffbff 0 18%, #67e8f9 19% 44%, transparent 46%);
+  filter: drop-shadow(0 0 7px #22d3ee);
+}
+.shadow-card .aura {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(103,232,249,.28), transparent 58%);
+  z-index: -1;
+}
+.shadow-card .blade, .shadow-card .staff, .shadow-card .wing, .shadow-card .tail, .shadow-card .horn, .shadow-card .cape, .shadow-card .ears {
+  position: absolute;
+  display: block;
+}
+.iron .horn { top: 0; width: 30px; height: 42px; border-top: 5px solid #020713; border-left: 5px solid #020713; }
+.iron .horn.left { left: 18%; transform: rotate(-24deg); border-radius: 32px 0 0 0; }
+.iron .horn.right { right: 18%; transform: scaleX(-1) rotate(-24deg); border-radius: 32px 0 0 0; }
+.iron .shield { position: absolute; right: 14%; bottom: 8px; width: 28px; height: 54px; border-radius: 50% 50% 44% 44%; background: linear-gradient(180deg, #67e8f9, #0f172a); box-shadow: 0 0 14px rgba(34,211,238,.7); }
+.beru .wing { top: 35px; width: 42px; height: 32px; border-radius: 70% 14% 70% 18%; background: rgba(103,232,249,.62); box-shadow: 0 0 16px rgba(34,211,238,.8); }
+.beru .wing.left { left: 7%; transform: rotate(-20deg); }
+.beru .wing.right { right: 7%; transform: scaleX(-1) rotate(-20deg); }
+.igris .cape { top: 6px; right: 7%; width: 44px; height: 76px; border-radius: 80% 18% 80% 18%; border-right: 8px solid #ef4444; transform: rotate(-22deg); filter: drop-shadow(0 0 8px rgba(239,68,68,.65)); }
+.igris .blade { right: 14%; bottom: 2px; width: 9px; height: 76px; background: linear-gradient(180deg, #e0faff, #22d3ee); transform: rotate(31deg); box-shadow: 0 0 12px rgba(34,211,238,.8); }
+.kaisel::before { inset: 34px 31% 5px; border-radius: 56% 56% 26% 26%; transform: rotate(-8deg); }
+.kaisel .tail { left: 7%; bottom: 20px; width: 58px; height: 42px; border-left: 8px solid #020713; border-bottom: 8px solid #020713; border-radius: 0 0 0 80%; transform: rotate(-22deg); box-shadow: -6px 6px 12px rgba(34,211,238,.3); }
+.kaisel .wing { right: 7%; top: 18px; width: 54px; height: 48px; clip-path: polygon(0 100%, 48% 0, 100% 100%); background: linear-gradient(135deg, rgba(103,232,249,.72), rgba(8,13,30,.95)); filter: drop-shadow(0 0 10px rgba(34,211,238,.72)); }
+.tusk::before { inset: 14px 27% 2px; border-radius: 48% 48% 22% 22%; }
+.tusk .mask { position: absolute; left: 50%; top: 36px; width: 44px; height: 38px; transform: translateX(-50%); border-radius: 42% 42% 48% 48%; background: #f59e0b; box-shadow: inset 0 -8px 0 rgba(127,29,29,.35), 0 0 14px rgba(251,146,60,.8); }
+.tusk .staff { left: 17%; top: 8px; width: 7px; height: 76px; background: #020713; box-shadow: 0 0 12px rgba(34,211,238,.55); }
+.tank::before { inset: 26px 20% 1px; border-radius: 49% 49% 35% 35%; }
+.tank .ears { top: 18px; left: 24%; width: 56px; height: 24px; border-radius: 999px 999px 0 0; border-top: 12px solid #020713; filter: drop-shadow(0 0 8px rgba(34,211,238,.5)); }
+.tank .claw { position: absolute; right: 16%; bottom: 8px; width: 34px; height: 24px; border-radius: 42% 42% 50% 50%; background: linear-gradient(180deg, #67e8f9, #020713); box-shadow: 0 0 14px rgba(34,211,238,.7); }
+@media (max-width: 900px) {
+  .shadow-squad { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .shadow-squad { grid-template-columns: 1fr; }
+}
+.setup-layout {
+  grid-template-columns: 1fr;
+}
+.setup-intro {
+  border-right: 0;
+}
+.setup-controls {
+  display: none !important;
+}
+.feature-menu {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.home-quiz-settings {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(103, 232, 249, .32);
+  border-radius: 10px;
+  background: rgba(4, 13, 36, .42);
+  color: #eaf2ff;
+}
+.home-setting-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.home-quiz-settings label {
+  font-weight: 900;
+  white-space: nowrap;
+}
+.home-quiz-settings select {
+  min-width: 180px;
+  border: 1px solid rgba(103, 232, 249, .55);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fbff;
+  color: #172554;
+}
+button.shadow-card {
+  appearance: none;
+  border: 1px solid rgba(103, 232, 249, .42);
+  text-align: left;
+  cursor: pointer;
+}
+.feature-card {
+  position: relative;
+  min-height: 220px;
+  padding: 154px 16px 16px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(34, 211, 238, .32), transparent 48%),
+    rgba(4, 13, 36, .58);
+}
+.feature-card strong {
+  position: relative;
+  z-index: 2;
+  font-size: 1.08rem;
+}
+.feature-card .feature-en {
+  position: relative;
+  z-index: 2;
+  color: #8ff4ff;
+  font-weight: 700;
+}
+.feature-card .feature-lock {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  border: 1px solid rgba(103, 232, 249, .42);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: #dffbff;
+  background: rgba(2, 8, 23, .48);
+  font-size: .78rem;
+  font-weight: 900;
+}
+.feature-card.is-unlocked .feature-lock {
+  border-color: rgba(74, 222, 128, .58);
+  color: #bbf7d0;
+}
+.feature-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(103, 232, 249, .82);
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, .18), 0 22px 38px rgba(2, 8, 23, .28);
+}
+.feature-card:focus-visible {
+  outline: 3px solid rgba(103, 232, 249, .45);
+  outline-offset: 3px;
+}
+.feature-character {
+  position: absolute;
+  left: 50%;
+  right: auto;
+  top: 12px;
+  width: min(130px, calc(100% - 24px));
+  height: 132px;
+  transform: translateX(-50%);
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
+  filter: drop-shadow(0 0 18px rgba(34, 211, 238, .48));
+}
+.feature-panel {
+  border: 1px solid rgba(148, 183, 255, .8);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(248, 251, 255, .98);
+  box-shadow: 0 24px 48px rgba(5, 12, 36, .28);
+}
+.feature-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 26px;
+  color: #fff;
+  background: linear-gradient(135deg, #09285d 0%, #17206a 58%, #3d1775 100%);
+  border-bottom: 3px solid #38bdf8;
+}
+.feature-panel-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+.feature-content {
+  padding: 26px;
+  display: grid;
+  gap: 18px;
+}
+.review-grid, .term-grid, .analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.review-card, .term-card, .analysis-card {
+  border: 1px solid #c6d5f6;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+}
+.review-card h3, .analysis-card h3 {
+  margin: 0 0 8px;
+  color: #172554;
+}
+.term-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+.term-card:hover { border-color: #38bdf8; background: #f0f9ff; }
+.term-card:focus-visible { outline: 3px solid rgba(56, 189, 248, .28); outline-offset: 2px; }
+.term-card strong { color: #172554; }
+.term-card span {
+  color: #475467;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.unlock-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 8, 23, .72);
+}
+.unlock-modal[hidden] { display: none; }
+.unlock-dialog {
+  width: min(420px, 100%);
+  border: 1px solid rgba(148, 183, 255, .8);
+  border-radius: 16px;
+  padding: 28px;
+  background: #fff;
+  box-shadow: 0 26px 72px rgba(2, 8, 23, .42);
+  text-align: center;
+}
+.unlock-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #4f46e5;
+  background: #eef2ff;
+  font-size: 1.9rem;
+}
+.unlock-dialog h2 { margin: 0 0 8px; color: #172554; }
+.unlock-dialog p { margin: 0 0 18px; color: #667085; }
+.unlock-input {
+  width: 100%;
+  border: 0;
+  border-bottom: 3px solid #4f46e5;
+  padding: 14px 10px;
+  margin-bottom: 18px;
+  text-align: center;
+  font-size: 1.3rem;
+  letter-spacing: .4em;
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+.unlock-input:focus {
+  outline: 0;
+  border-bottom-color: #06b6d4;
+}
+.unlock-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.unlock-message {
+  min-height: 20px;
+  color: #b42318 !important;
+  font-weight: 800;
+  margin-top: 12px !important;
+}
+@media (max-width: 760px) {
+  .feature-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-quiz-settings { align-items: stretch; flex-direction: column; }
+  .home-setting-field { align-items: stretch; flex-direction: column; }
+  .review-grid, .term-grid, .analysis-grid { grid-template-columns: 1fr; }
+  .feature-panel-header { align-items: flex-start; flex-direction: column; }
+}
+
 </style>
 </head>
 <body>
@@ -592,27 +1016,69 @@ body:not(.exam-active) .timer-floating {
           <div class="outline-row">機器學習、電腦視覺、自然語言處理</div>
           <div class="outline-row">選擇題、是非題、配對題、拖放排序題</div>
         </div>
-        <div class="pokemon-duo" aria-label="寶可夢風格角色展示">
-          <div class="pokemon-card pikachu-card">
-            <img class="pokemon-art pikachu-art" src="assets/pikachu-transparent.gif" alt="皮卡丘 Pikachu">
-            <div class="pokemon-copy">
-              <strong>皮卡丘 Pikachu</strong>
-              <span>快速暖身，準備放電作答。</span>
-            </div>
+        <div class="home-quiz-settings">
+          <div class="home-setting-field">
+            <label for="home-question-count">測驗題數</label>
+            <select id="home-question-count">
+              <option value="45" selected>45 題</option>
+              <option value="60">60 題</option>
+              <option value="90">90 題</option>
+              <option value="100">100 題</option>
+              <option value="all">387 題</option>
+            </select>
           </div>
-          <div class="pokemon-card gengar-card">
-            <img class="pokemon-art gengar-art" src="assets/gengar.gif" alt="耿鬼 Gengar">
-            <div class="pokemon-copy">
-              <strong>耿鬼 Gengar</strong>
-              <span>專門盯住錯題與觀念死角。</span>
-            </div>
+          <div class="home-setting-field">
+            <label for="home-time-limit">測驗時間</label>
+            <select id="home-time-limit">
+              <option value="60" selected>60 分鐘</option>
+              <option value="90">90 分鐘</option>
+              <option value="180">180 分鐘</option>
+            </select>
           </div>
+        </div>
+        <div class="feature-menu" aria-label="功能入口">
+          <button class="shadow-card feature-card is-locked" type="button" data-feature="exam">
+            <img class="feature-character" src="assets/shadow-iron.png" alt="" aria-hidden="true">
+            <span class="feature-lock">鎖定</span>
+            <strong>進入考試</strong>
+            <span class="feature-en">Enter Exam</span>
+          </button>
+          <button class="shadow-card feature-card is-locked" type="button" data-feature="mock">
+            <img class="feature-character" src="assets/shadow-beru.png" alt="" aria-hidden="true">
+            <span class="feature-lock">鎖定</span>
+            <strong>模擬測驗</strong>
+            <span class="feature-en">Mock Test</span>
+          </button>
+          <button class="shadow-card feature-card is-locked" type="button" data-feature="wrong">
+            <img class="feature-character" src="assets/shadow-igris.png" alt="" aria-hidden="true">
+            <span class="feature-lock">鎖定</span>
+            <strong>錯題再考</strong>
+            <span class="feature-en">Wrong Questions</span>
+          </button>
+          <button class="shadow-card feature-card is-locked" type="button" data-feature="focus">
+            <img class="feature-character" src="assets/shadow-kaisel.png" alt="" aria-hidden="true">
+            <span class="feature-lock">鎖定</span>
+            <strong>重點複習</strong>
+            <span class="feature-en">Key Review</span>
+          </button>
+          <button class="shadow-card feature-card is-locked" type="button" data-feature="terms">
+            <img class="feature-character" src="assets/shadow-tusk.png" alt="" aria-hidden="true">
+            <span class="feature-lock">鎖定</span>
+            <strong>專有名詞複習</strong>
+            <span class="feature-en">Terminology</span>
+          </button>
+          <button class="shadow-card feature-card is-locked" type="button" data-feature="analysis">
+            <img class="feature-character" src="assets/shadow-tank.png" alt="" aria-hidden="true">
+            <span class="feature-lock">鎖定</span>
+            <strong>題目分析</strong>
+            <span class="feature-en">Question Analysis</span>
+          </button>
         </div>
       </div>
       <div class="setup-controls">
         <h3>考試設定</h3>
         <div class="setup-grid">
-          <div class="field"><label for="question-count">題數</label><select id="question-count"><option value="40">40 題</option><option value="45" selected>45 題</option><option value="60">60 題</option><option value="80">80 題</option><option value="all">全部 387 題</option></select></div>
+          <div class="field"><label for="question-count">題數</label><select id="question-count"><option value="45" selected>45 題</option><option value="60">60 題</option><option value="90">90 題</option><option value="100">100 題</option><option value="all">387 題</option></select></div>
           <div class="field"><label for="time-limit">時間</label><select id="time-limit"><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60" selected>60 分鐘</option><option value="90">90 分鐘</option><option value="180">180 分鐘</option></select></div>
           <div class="field"><label for="category-filter">技能範圍</label><select id="category-filter"><option value="all">全部範圍</option><option value="outline-1">AI 工作負載與考量</option><option value="outline-2">機器學習</option><option value="outline-3">電腦視覺</option><option value="outline-4">自然語言處理</option></select></div>
           <div class="toggle-line"><input type="checkbox" id="shuffle-questions" checked><label for="shuffle-questions">隨機抽題</label></div>
@@ -620,7 +1086,7 @@ body:not(.exam-active) .timer-floating {
         <div class="start-actions">
           <div class="practice-code-row">
             <label for="exam-practice-code">練習碼</label>
-            <input id="exam-practice-code" class="practice-code-input" type="text" maxlength="9" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="text" placeholder="請輸入練習碼">
+            <input id="exam-practice-code" class="practice-code-input" type="password" maxlength="9" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="text" placeholder="請輸入練習碼">
             <button id="enable-exam" class="enable-button" type="button">啟用</button>
           </div>
           <button id="start-exam" class="primary" type="button" disabled aria-disabled="true">開始作答</button>
@@ -631,6 +1097,14 @@ body:not(.exam-active) .timer-floating {
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="feature-review-shell" class="feature-panel" hidden>
+    <div class="feature-panel-header">
+      <h2 id="feature-review-title">複習</h2>
+      <button id="feature-back-home" type="button">返回首頁</button>
+    </div>
+    <div id="feature-review-content" class="feature-content"></div>
   </section>
 
   <section id="exam-shell" hidden>
@@ -17669,6 +18143,7 @@ body:not(.exam-active) .timer-floating {
                             target="_blank">Microsoft Learn: 文件智慧服務收據模型</a></div>
                 </div>
             </div>
+
         </div>
         <div class="actions-row"><button id="prev-question" type="button">上一題</button><button id="next-question" class="primary" type="button">下一題</button></div>
       </section>
@@ -17680,6 +18155,19 @@ body:not(.exam-active) .timer-floating {
     </div>
   </section>
 </main>
+<div id="unlock-modal" class="unlock-modal" hidden>
+  <div class="unlock-dialog" role="dialog" aria-modal="true" aria-labelledby="unlock-title">
+    <div class="unlock-icon">鎖</div>
+    <h2 id="unlock-title">系統存取驗證</h2>
+    <p>請輸入練習碼以解鎖功能入口。</p>
+    <input id="feature-unlock-code" class="unlock-input" type="password" maxlength="9" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="text" aria-label="練習碼">
+    <div class="unlock-actions">
+      <button id="feature-unlock-cancel" type="button">取消</button>
+      <button id="feature-unlock-confirm" class="primary" type="button">解鎖進入</button>
+    </div>
+    <p id="feature-unlock-message" class="unlock-message"></p>
+  </div>
+</div>
 <script>
 let questions = [];
 let currentIndex = 0;
@@ -19407,5 +19895,383 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   document.addEventListener('DOMContentLoaded', initLock);
 })();
 </script>
+<script id="ai900-feature-hub">
+(function () {
+  const PRACTICE_CODE = '01156688@';
+  let pendingFeature = null;
+
+  const focusItems = [
+    ['負責任 AI 的原則', 'Responsible AI Principles', '公平性、可靠性與安全性、隱私權與安全性、包容性、透明度、責任。'],
+    ['Azure 的 AI 服務', 'Azure AI Services', '語言、語音、視覺、文件智慧、搜尋與 Azure OpenAI 都是常見考點。'],
+    ['機器學習的類型', 'Types of Machine Learning', '監督式、非監督式、分類、迴歸與叢集要能依情境判斷。'],
+    ['模型演算法和評估指標', 'Algorithms and Metrics', '分類看混淆矩陣與 AUC，迴歸看誤差，叢集看相似性分組。'],
+    ['生成式 AI', 'Generative AI', '大型語言模型、提示工程、回應限制、內容安全與負責任 AI 是常見主題。'],
+    ['電腦視覺服務', 'Vision Services', 'OCR、影像分析、物件偵測、臉部、文件智慧與自訂視覺要分清楚。']
+  ];
+
+  const termItems = [
+    ['公平性', 'Fairness'],
+    ['可靠性與安全性', 'Reliability and Safety'],
+    ['隱私權與安全性', 'Privacy and Security'],
+    ['包容性', 'Inclusiveness'],
+    ['透明度', 'Transparency'],
+    ['責任', 'Accountability'],
+    ['機器學習', 'Machine Learning'],
+    ['監督式機器學習', 'Supervised Learning'],
+    ['非監督式機器學習', 'Unsupervised Learning'],
+    ['分類', 'Classification'],
+    ['迴歸', 'Regression'],
+    ['叢集', 'Clustering'],
+    ['異常偵測', 'Anomaly Detection'],
+    ['模型定型', 'Model Training'],
+    ['模型評估', 'Model Evaluation'],
+    ['特徵', 'Feature'],
+    ['標籤', 'Label'],
+    ['資料集', 'Dataset'],
+    ['自然語言處理', 'Natural Language Processing'],
+    ['語音辨識', 'Speech Recognition'],
+    ['語音合成', 'Speech Synthesis'],
+    ['文字分析', 'Text Analytics'],
+    ['翻譯', 'Translation'],
+    ['電腦視覺', 'Azure AI Vision'],
+    ['自訂視覺', 'Custom Vision'],
+    ['文件智慧', 'Azure AI Document Intelligence'],
+    ['光學字元辨識', 'Optical Character Recognition'],
+    ['物件偵測', 'Object Detection'],
+    ['影像分析', 'Image Analysis'],
+    ['臉部', 'Face'],
+    ['Azure Bot Service', 'Azure Bot Service'],
+    ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
+    ['Azure OpenAI 服務', 'Azure OpenAI Service'],
+    ['提示工程', 'Prompt Engineering'],
+    ['內容篩選', 'Content Filtering'],
+    ['標記', 'Labeling / Labels'],
+    ['類別型標籤', 'Categorical Label'],
+    ['特徵', 'Features'],
+    ['資料集切分', 'Data Splitting'],
+    ['資料擷取', 'Data Ingestion'],
+    ['資料準備', 'Data Preparation'],
+    ['缺失值處理', 'Missing Value Handling'],
+    ['合併資料集', 'Merge Datasets'],
+    ['訓練集', 'Training Dataset'],
+    ['驗證集', 'Validation Dataset'],
+    ['測試集', 'Test Dataset'],
+    ['過度擬合', 'Overfitting'],
+    ['特徵工程', 'Feature Engineering'],
+    ['特徵選取', 'Feature Selection'],
+    ['混淆矩陣', 'Confusion Matrix'],
+    ['ROC 曲線', 'ROC Curve'],
+    ['AUC 計量', 'AUC Metric'],
+    ['閾值', 'Threshold'],
+    ['正確率', 'Accuracy'],
+    ['精確率', 'Precision'],
+    ['召回率', 'Recall'],
+    ['模型', 'Model'],
+    ['推論', 'Inference'],
+    ['深度學習', 'Deep Learning'],
+    ['Transformer 架構', 'Transformer Architecture'],
+    ['電腦視覺', 'Computer Vision'],
+    ['圖像分類', 'Image Classification'],
+    ['邊界框', 'Bounding Box'],
+    ['文字擷取', 'Optical Character Recognition / OCR'],
+    ['臉部偵測', 'Face Detection'],
+    ['臉部分析', 'Face Analysis'],
+    ['Azure AI Face', 'Azure AI Face'],
+    ['自然語言處理', 'Natural Language Processing / NLP'],
+    ['情感分析', 'Sentiment Analysis'],
+    ['關鍵字片語提取', 'Key Phrase Extraction'],
+    ['實體辨識', 'Entity Recognition'],
+    ['語言模型', 'Language Modeling'],
+    ['Azure AI Translator', 'Azure AI Translator'],
+    ['交談式 AI', 'Conversational AI'],
+    ['互動式語音回應系統', 'Interactive Voice Response / IVR'],
+    ['Bot 通道', 'Bot Channels'],
+    ['QnA Maker', 'QnA Maker'],
+    ['知識探索 / 知識採礦', 'Knowledge Mining'],
+    ['Azure AI Search', 'Azure AI Search'],
+    ['Azure Machine Learning', 'Azure Machine Learning'],
+    ['Azure Machine Learning 工作區', 'Azure Machine Learning Workspace'],
+    ['資料資產', 'Data Assets'],
+    ['運算資源', 'Compute Resources'],
+    ['Azure Machine Learning Studio', 'Azure Machine Learning Studio'],
+    ['自動化機器學習', 'Automated Machine Learning'],
+    ['設計工具', 'Designer'],
+    ['管線', 'Pipeline'],
+    ['模型管理', 'Model Management'],
+    ['模型部署', 'Model Deployment'],
+    ['端點', 'Endpoint'],
+    ['筆記本', 'Notebooks'],
+    ['Jupyter Notebook', 'Jupyter Notebook'],
+    ['已註冊模型', 'Registered Model'],
+    ['鍵值對', 'Key-Value Pairs'],
+    ['Azure AI Language', 'Azure AI Language'],
+    ['對話語言理解', 'Conversational Language Understanding / CLU'],
+    ['Azure AI Speech', 'Azure AI Speech'],
+    ['語音轉文字', 'Speech to Text / STT'],
+    ['文字轉語音', 'Text to Speech / TTS'],
+    ['類神經語音', 'Neural Voice'],
+    ['聲紋辨識', 'Speaker Recognition'],
+    ['生成式 AI', 'Generative AI'],
+    ['大型語言模型', 'Large Language Model / LLM'],
+    ['提示詞', 'Prompt'],
+    ['權杖', 'Token'],
+    ['DALL-E 模型', 'DALL-E Model'],
+    ['Azure OpenAI DALL-E 模型', 'Azure OpenAI DALL-E Model'],
+    ['文字轉圖像', 'Text-to-Image'],
+    ['GPT 模型', 'GPT Model'],
+    ['OpenAI Codex 模型', 'OpenAI Codex Model'],
+    ['GitHub Copilot', 'GitHub Copilot'],
+    ['Visual Studio Code', 'Visual Studio Code / VS Code'],
+    ['溫度', 'Temperature'],
+    ['確定性', 'Deterministic'],
+    ['創造性', 'Creative'],
+    ['模型幻覺', 'Hallucination'],
+    ['接地', 'Grounding'],
+    ['檢索增強生成', 'Retrieval-Augmented Generation / RAG'],
+    ['微調', 'Fine-tuning'],
+    ['Azure AI Foundry', 'Azure AI Foundry'],
+    ['Azure AI Foundry 模型目錄', 'Azure AI Foundry Model Catalog'],
+  ];
+
+  function isUnlocked() {
+    return window.ai900PracticeUnlocked === true;
+  }
+
+  function setDefaults(count, minutes, category, shuffle) {
+    const countSelect = document.getElementById('question-count');
+    const timeSelect = document.getElementById('time-limit');
+    const categorySelect = document.getElementById('category-filter');
+    const shuffleBox = document.getElementById('shuffle-questions');
+    if (countSelect) countSelect.value = count;
+    if (timeSelect) timeSelect.value = minutes;
+    if (categorySelect) categorySelect.value = category;
+    if (shuffleBox) shuffleBox.checked = shuffle;
+  }
+
+  function selectedHomeQuestionCount() {
+    return document.getElementById('home-question-count')?.value || '45';
+  }
+
+  function selectedHomeTimeLimit() {
+    return document.getElementById('home-time-limit')?.value || '60';
+  }
+
+  function openUnlock(feature) {
+    pendingFeature = feature;
+    const modal = document.getElementById('unlock-modal');
+    const input = document.getElementById('feature-unlock-code');
+    const message = document.getElementById('feature-unlock-message');
+    if (message) message.textContent = '';
+    if (input) input.value = '';
+    if (modal) modal.hidden = false;
+    window.setTimeout(() => input?.focus(), 0);
+  }
+
+  function closeUnlock() {
+    const modal = document.getElementById('unlock-modal');
+    if (modal) modal.hidden = true;
+  }
+
+  function syncFeatureLocks() {
+    const unlocked = isUnlocked();
+    document.querySelectorAll('.feature-card').forEach(card => {
+      card.classList.toggle('is-unlocked', unlocked);
+      card.classList.toggle('is-locked', !unlocked);
+      const lock = card.querySelector('.feature-lock');
+      if (lock) lock.textContent = unlocked ? '已解鎖' : '鎖定';
+    });
+  }
+
+  function unlockFromModal() {
+    const input = document.getElementById('feature-unlock-code');
+    const message = document.getElementById('feature-unlock-message');
+    if (!input) return;
+    if (input.value !== PRACTICE_CODE) {
+      if (message) message.textContent = '練習碼不正確。';
+      input.value = '';
+      input.focus();
+      return;
+    }
+    const hiddenInput = document.getElementById('exam-practice-code');
+    if (hiddenInput) hiddenInput.value = PRACTICE_CODE;
+    document.getElementById('enable-exam')?.click();
+    closeUnlock();
+    syncFeatureLocks();
+    if (pendingFeature) activateFeature(pendingFeature);
+  }
+
+  function showFeature(title, html) {
+    document.getElementById('start-screen').hidden = true;
+    document.getElementById('exam-shell').hidden = true;
+    const shell = document.getElementById('feature-review-shell');
+    const heading = document.getElementById('feature-review-title');
+    const content = document.getElementById('feature-review-content');
+    if (heading) heading.textContent = title;
+    if (content) content.innerHTML = html;
+    if (shell) shell.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderFocusReview() {
+    return '<div class="review-grid">' + focusItems.map(item =>
+      '<article class="review-card"><h3>' + item[0] + ' - ' + item[1] + '</h3><p>' + item[2] + '</p></article>'
+    ).join('') + '</div>';
+  }
+
+  function renderTermsReview() {
+    return '<p>所有專有名詞採中文 + 英文顯示。點擊任一名詞可播放英文唸法。</p><div class="term-grid">' + termItems.map(item =>
+      '<button class="term-card speak-term" type="button" data-speak="' + item[1].replace(/"/g, '&quot;') + '"><strong>' + item[0] + '</strong><span>' + item[1] + '</span></button>'
+    ).join('') + '</div>';
+  }
+
+  function speechText(text) {
+    return String(text || '')
+      .replace(/\(([^)]+)\)/g, ', $1,')
+      .replace(/\b([A-Z]{2,6})\b/g, (_, word) => word.split('').join(' '))
+      .replace(/[\/\-–—]/g, ', ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function speakEnglish(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(speechText(text));
+    utterance.lang = 'en-US';
+    utterance.rate = 0.78;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function renderQuestionAnalysis() {
+    const cards = [...document.querySelectorAll('.question-card')];
+    const categoryNames = {
+      'outline-1': 'AI 工作負載與考量',
+      'outline-2': '機器學習',
+      'outline-3': '電腦視覺',
+      'outline-4': '自然語言處理'
+    };
+    const categoryCounts = {};
+    const typeCounts = {};
+    cards.forEach(card => {
+      const category = categoryNames[card.dataset.category] || '未分類';
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+      const title = card.querySelector('.question-title')?.textContent || '';
+      const type = (title.match(/[（(]([^）)]*題)[）)]/) || [null, '一般題'])[1];
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+    const block = (title, data) => '<article class="analysis-card"><h3>' + title + '</h3>' +
+      Object.entries(data).map(([key, value]) => '<p><strong>' + key + '</strong>：' + value + ' 題</p>').join('') + '</article>';
+    return '<div class="analysis-grid">' +
+      '<article class="analysis-card"><h3>題庫總覽 - Overview</h3><p><strong>總題數</strong>：' + cards.length + ' 題</p><p><strong>考試模式</strong>：45 題 / 60 分鐘 / 700 及格</p></article>' +
+      block('技能範圍 - Skill Areas', categoryCounts) +
+      block('題型分布 - Question Types', typeCounts) +
+      '<article class="analysis-card"><h3>錯題庫 - Wrong Bank</h3><p>答錯題目會保存在瀏覽器本機，首頁可用「錯題再考」專門練習。</p></article>' +
+    '</div>';
+  }
+
+  function activateFeature(feature) {
+    if (!isUnlocked()) {
+      openUnlock(feature);
+      return;
+    }
+    if (feature === 'exam') {
+      setDefaults(selectedHomeQuestionCount(), selectedHomeTimeLimit(), 'all', true);
+      window.startExam?.();
+      return;
+    }
+    if (feature === 'mock') {
+      setDefaults(selectedHomeQuestionCount(), selectedHomeTimeLimit(), 'all', true);
+      window.startExam?.();
+      return;
+    }
+    if (feature === 'wrong') {
+      if (typeof window.ai900HasWrongBank === 'function' && !window.ai900HasWrongBank()) {
+        showFeature('錯題再考', '<div class="review-card"><h3>目前沒有錯題紀錄 - No Wrong Questions</h3><p>完成一次測驗並交卷後，答錯題目會出現在這裡。</p></div>');
+        return;
+      }
+      window.startWrongExam?.();
+      return;
+    }
+    if (feature === 'focus') {
+      showFeature('重點複習', renderFocusReview());
+      return;
+    }
+    if (feature === 'terms') {
+      showFeature('專有名詞複習', renderTermsReview());
+      return;
+    }
+    if (feature === 'analysis') {
+      showFeature('題目分析', renderQuestionAnalysis());
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    syncFeatureLocks();
+    document.querySelectorAll('.feature-card[data-feature]').forEach(card => {
+      card.addEventListener('click', () => activateFeature(card.dataset.feature));
+    });
+    document.getElementById('feature-unlock-confirm')?.addEventListener('click', unlockFromModal);
+    document.getElementById('feature-unlock-cancel')?.addEventListener('click', closeUnlock);
+    document.getElementById('feature-unlock-code')?.addEventListener('keydown', event => {
+      if (event.key === 'Enter') unlockFromModal();
+      if (event.key === 'Escape') closeUnlock();
+    });
+    document.getElementById('feature-back-home')?.addEventListener('click', () => {
+      document.getElementById('feature-review-shell').hidden = true;
+      document.getElementById('exam-shell').hidden = true;
+      document.getElementById('start-screen').hidden = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('feature-review-content')?.addEventListener('click', event => {
+      const button = event.target.closest?.('.speak-term[data-speak]');
+      if (button) speakEnglish(button.dataset.speak || '');
+    });
+  });
+})();
+</script>
+<script id="ai900-essay-answer-patch">
+(function () {
+  function isEssayQuestion(card) {
+    return /\(問答題\)|（問答題）/.test(card.querySelector('.question-title')?.textContent || '');
+  }
+
+  function hasInteractiveAnswer(card) {
+    return !!card.querySelector('.question-body input, .question-body select, .question-body textarea, .yn-options');
+  }
+
+  function injectEssayAnswer(card) {
+    if (!isEssayQuestion(card) || hasInteractiveAnswer(card) || card.querySelector('.manual-answer-box')) return;
+    const body = card.querySelector('.question-body');
+    if (!body) return;
+    const box = document.createElement('div');
+    box.className = 'manual-answer-box';
+    box.innerHTML =
+      '<label>作答區</label>' +
+      '<textarea data-manual-answer="true" placeholder="請在這裡輸入你的答案。交卷後會顯示正確答案與解析供自行核對。"></textarea>' +
+      '<p class="manual-note">此題為手動核對題，不會自動判分。</p>';
+    const textarea = box.querySelector('textarea');
+    textarea.addEventListener('input', () => {
+      if (typeof updateProgress === 'function') updateProgress();
+    });
+    body.appendChild(box);
+  }
+
+  function injectEssayAnswers() {
+    document.querySelectorAll('.question-card').forEach(injectEssayAnswer);
+  }
+
+  const originalSetupCards = window.setupCards;
+  if (typeof originalSetupCards === 'function') {
+    window.setupCards = function patchedSetupCards() {
+      originalSetupCards();
+      injectEssayAnswers();
+    };
+  }
+  document.addEventListener('DOMContentLoaded', injectEssayAnswers);
+})();
+</script>
 </body>
 </html>
+
+
+
