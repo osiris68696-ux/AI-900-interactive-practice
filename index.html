@@ -47,6 +47,10 @@ h1 { margin: 0; font-size: 1.35rem; letter-spacing: 0; }
 .toggle-line input { width: 18px; height: 18px; accent-color: var(--blue); }
 .start-actions { margin-top: auto; display: grid; gap: 10px; }
 #start-exam { min-height: 48px; font-weight: 800; }
+#start-wrong-exam { min-height: 48px; font-weight: 800; }
+.wrong-start-button { background: #fff7ce; border: 2px solid var(--poke-blue-dark, #0f2742); color: var(--poke-blue-dark, #0f2742); box-shadow: 0 3px 0 var(--poke-blue-dark, #0f2742); }
+.wrong-start-button:hover:not(:disabled) { background: var(--poke-yellow, #ffcb05); color: #172033; transform: translateY(-1px); }
+.wrong-start-button:disabled { background: #f7fbff; border-color: #b8ccf7; color: #8a97b3; box-shadow: none; transform: none; }
 .enable-button { min-height: 48px; border-color: #b8c8ff; background: #eef2ff; color: #4338ca; font-weight: 900; box-shadow: inset 0 -2px 0 rgba(67, 56, 202, .08); }
 .enable-button.enabled { border-color: #86efac; background: #ecfdf3; color: #047857; }
 .enable-status { color: #475467; font-size: .88rem; margin: 0; }
@@ -128,6 +132,16 @@ body.review-mode .answer-content { display: block; }
 .score-stat span { color: var(--muted); font-size: .88rem; }
 .score-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 0; }
 .score-actions button { min-height: 42px; }
+.wrong-review-design { margin: 0 30px 28px; border: 1px solid #f4c7c3; border-left: 6px solid var(--bad); border-radius: 10px; padding: 18px; background: #fff8f7; display: grid; gap: 14px; }
+.wrong-review-design h3 { margin: 0; color: #7a271a; font-size: 1.12rem; }
+.wrong-review-design p { margin: 0; color: #5f2a20; }
+.wrong-review-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+.wrong-review-meta span { border: 1px solid #f4c7c3; border-radius: 999px; padding: 6px 10px; background: #fff; color: #7a271a; font-weight: 800; }
+.wrong-review-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.wrong-review-actions button { min-height: 42px; border-color: #f4c7c3; }
+.wrong-review-actions .primary-review { background: var(--bad); border-color: var(--bad); color: #fff; }
+.wrong-review-actions .primary-review:hover:not(:disabled) { background: #8f1f16; border-color: #8f1f16; color: #fff; }
+.wrong-review-actions button:disabled { opacity: .5; }
 .wrong-review-heading { font-size: 1.25rem; margin: 22px 0 12px; color: #1f2a44; display: flex; align-items: center; gap: 10px; }
 .wrong-review-heading::before { content: ""; width: 5px; height: 22px; border-radius: 999px; background: var(--bad); }
 .wrong-review-card { text-align: left; border-left: 5px solid var(--bad); background: #fff; border-radius: 8px; padding: 18px; margin: 14px 0; box-shadow: 0 4px 14px rgba(20, 36, 64, .08); }
@@ -610,7 +624,9 @@ body:not(.exam-active) .timer-floating {
             <button id="enable-exam" class="enable-button" type="button">啟用</button>
           </div>
           <button id="start-exam" class="primary" type="button" disabled aria-disabled="true">開始作答</button>
+          <button id="start-wrong-exam" class="wrong-start-button" type="button" disabled aria-disabled="true">錯題再考</button>
           <p id="enable-status" class="enable-status">輸入練習碼後即可開始，本頁不會送出資料。</p>
+          <p id="wrong-exam-status" class="setup-note">目前沒有錯題紀錄。</p>
           <p class="setup-note">可依技能範圍集中練習，或使用全部範圍模擬正式考試。</p>
         </div>
       </div>
@@ -17705,7 +17721,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return cleanText(text);
   }
   function stripEnglishParentheses(value) { return cleanText(value).replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g, ''); }
-  function optionDedupeKey(value) { return stripEnglishParentheses(sanitizeOptionText(value)).replace(/[()（）\s]/g, '').toLowerCase(); }
+  function stripAnyParentheses(value) { return cleanText(value).replace(/\s*[（(][^）)]*[）)]/g, ''); }
+  function optionDedupeKey(value) { return stripAnyParentheses(sanitizeOptionText(value)).replace(/[()（）\s]/g, '').toLowerCase(); }
   function comparableTerm(value) { return sanitizeOptionText(value).replace(/[()（）\s]/g, '').toLowerCase(); }
   function getAnswerText(card) {
     const answer = card.querySelector('.answer-content .answer');
@@ -17862,8 +17879,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         if (seen.has(key)) {
           const kept = seen.get(key);
           const keptText = cleanText(kept.textContent);
-          const textHasEnglish = /[（(][^）)]*[A-Za-z][^）)]*[）)]/.test(text);
-          const keptHasEnglish = /[（(][^）)]*[A-Za-z][^）)]*[）)]/.test(keptText);
+          const textHasEnglish = /[（(][^）)]{1,120}[）)]/.test(text);
+          const keptHasEnglish = /[（(][^）)]{1,120}[）)]/.test(keptText);
           if (textHasEnglish && !keptHasEnglish) {
             kept.textContent = text;
             kept.value = text;
@@ -18137,9 +18154,154 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const results = document.getElementById('results');
     if (!results || results.dataset.reportReady) return;
     results.dataset.reportReady = 'true';
-    results.innerHTML = '<div class="score-report"><div class="score-report-header"><div><h2>Microsoft Certification Score Report</h2><div class="cert-name">AI-900: Azure AI Fundamentals</div></div><div id="pass-box" class="pass-box">PASS</div></div><div class="score-summary"><div class="score-main"><div class="score-label">YOUR SCORE</div><div id="score-number" class="score-number">0</div><div class="passing-score">Passing Score: 700</div></div><div class="score-detail"><div id="score-note" class="score-note-card"></div><div class="score-stats"><div class="score-stat"><strong id="score-correct">0</strong><span>答對題數</span></div><div class="score-stat"><strong id="score-total">0</strong><span>可計分題數</span></div><div class="score-stat"><strong id="score-percent">0%</strong><span>正確率</span></div></div><div class="score-actions"><button id="restart-exam" type="button">重考一次</button><button id="review-all" type="button">重新檢視錯題</button></div></div></div></div><h3 class="wrong-review-heading">錯題解析</h3><div id="wrong-review"></div><div id="score-line" hidden></div>';
+    results.innerHTML = '<div class="score-report"><div class="score-report-header"><div><h2>Microsoft Certification Score Report</h2><div class="cert-name">AI-900: Azure AI Fundamentals</div></div><div id="pass-box" class="pass-box">PASS</div></div><div class="score-summary"><div class="score-main"><div class="score-label">YOUR SCORE</div><div id="score-number" class="score-number">0</div><div class="passing-score">Passing Score: 700</div></div><div class="score-detail"><div id="score-note" class="score-note-card"></div><div class="score-stats"><div class="score-stat"><strong id="score-correct">0</strong><span>答對題數</span></div><div class="score-stat"><strong id="score-total">0</strong><span>可計分題數</span></div><div class="score-stat"><strong id="score-percent">0%</strong><span>正確率</span></div></div><div class="score-actions"><button id="restart-exam" type="button">重考一次</button><button id="review-submitted-all" type="button">回看全部題目</button></div></div></div></div><h3 class="wrong-review-heading">錯題解析</h3><div id="wrong-review"></div><div id="score-line" hidden></div>';
     document.getElementById('restart-exam')?.addEventListener('click', () => location.href = location.pathname + '?restart=' + Date.now());
-    document.getElementById('review-all')?.addEventListener('click', () => { document.body.classList.toggle('show-all-review'); });
+    document.getElementById('review-submitted-all')?.addEventListener('click', showSubmittedQuestionReview);
+  }
+  let submittedReviewQuestions = [];
+  let wrongReviewCards = [];
+  const WRONG_BANK_KEY = 'ai900-wrong-question-ids';
+
+  function getStoredWrongIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(WRONG_BANK_KEY) || '[]');
+      return Array.isArray(parsed) ? [...new Set(parsed.filter(id => typeof id === 'string' && id))] : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveStoredWrongIds(ids) {
+    try {
+      localStorage.setItem(WRONG_BANK_KEY, JSON.stringify([...new Set(ids.filter(Boolean))]));
+    } catch (_) {}
+  }
+
+  function getStoredWrongQuestionCards() {
+    const byId = new Map([...document.querySelectorAll('.question-card')].map(card => [card.id, card]));
+    return getStoredWrongIds().map(id => byId.get(id)).filter(Boolean);
+  }
+
+  function syncWrongQuestionBank(wrongIds, correctIds) {
+    const bank = new Set(getStoredWrongIds());
+    correctIds.forEach(id => bank.delete(id));
+    wrongIds.forEach(id => bank.add(id));
+    saveStoredWrongIds([...bank]);
+    refreshWrongExamEntry();
+  }
+
+  function refreshWrongExamEntry() {
+    const count = getStoredWrongQuestionCards().length;
+    const button = document.getElementById('start-wrong-exam');
+    const status = document.getElementById('wrong-exam-status');
+    const unlocked = window.ai900PracticeUnlocked === true;
+    if (button) {
+      button.disabled = !(unlocked && count > 0);
+      button.setAttribute('aria-disabled', button.disabled ? 'true' : 'false');
+    }
+    if (status) {
+      if (!count) status.textContent = '目前沒有錯題紀錄。';
+      else if (!unlocked) status.textContent = '錯題庫 ' + count + ' 題。請先輸入練習碼。';
+      else status.textContent = '錯題庫 ' + count + ' 題，可直接再考。';
+    }
+  }
+
+  function uniqueCardsByQuestionText(cards) {
+    const seen = new Set();
+    const selected = [];
+    cards.forEach(card => {
+      const key = typeof questionDedupeKey === 'function' ? questionDedupeKey(card) : card.id;
+      if (key && seen.has(key)) return;
+      if (key) seen.add(key);
+      selected.push(card);
+    });
+    return selected;
+  }
+
+  function startStoredWrongExam() {
+    if (window.ai900PracticeUnlocked !== true) {
+      document.getElementById('enable-status').textContent = '請先輸入正確的練習碼。';
+      document.getElementById('exam-practice-code')?.focus();
+      return;
+    }
+    setupCards();
+    const random = document.getElementById('shuffle-questions')?.checked;
+    const wrongCards = getStoredWrongQuestionCards();
+    const ordered = random ? shuffleArray([...wrongCards]) : wrongCards;
+    const selected = uniqueCardsByQuestionText(ordered);
+    if (!selected.length) {
+      refreshWrongExamEntry();
+      return;
+    }
+    installScoreReport();
+    examSubmitted = false;
+    state.review.clear();
+    document.body.classList.remove('review-mode', 'show-all-review', 'submitted');
+    document.getElementById('submit-exam').disabled = false;
+    questions.forEach(card => card.classList.add('not-in-exam'));
+    selected.forEach((card, idx) => {
+      card.classList.remove('not-in-exam');
+      card.dataset.examOrder = idx;
+      const badge = card.querySelector('.exam-number');
+      if (badge) badge.textContent = '第 ' + (idx + 1) + ' 題';
+    });
+    questions = selected;
+    currentIndex = 0;
+    remainingSeconds = Number(document.getElementById('time-limit').value) * 60;
+    document.body.classList.add('exam-active');
+    document.getElementById('start-screen').hidden = true;
+    document.getElementById('exam-shell').hidden = false;
+    document.getElementById('results').hidden = true;
+    buildNavigator();
+    showQuestion(0);
+    startTimer();
+    updateProgress();
+  }
+
+  window.ai900HasWrongBank = () => getStoredWrongQuestionCards().length > 0;
+  window.ai900RefreshWrongBank = refreshWrongExamEntry;
+  window.startWrongExam = startStoredWrongExam;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('start-wrong-exam')?.addEventListener('click', startStoredWrongExam);
+    refreshWrongExamEntry();
+  });
+
+  function setReviewQuestionSet(cards) {
+    if (!cards.length) return;
+    document.querySelectorAll('.question-card').forEach(card => {
+      card.classList.add('not-in-exam');
+      card.classList.remove('current');
+    });
+    cards.forEach(card => {
+      card.classList.remove('not-in-exam');
+      card.querySelectorAll('.answer-content').forEach(answer => answer.classList.add('show'));
+    });
+    questions = cards;
+    currentIndex = 0;
+    buildNavigator();
+    showQuestion(0);
+    updateProgress();
+  }
+  function startWrongQuestionReview() {
+    const cards = wrongReviewCards.map(item => item.card).filter(Boolean);
+    if (!cards.length) {
+      document.getElementById('wrong-review')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    setReviewQuestionSet(cards);
+    document.querySelector('.exam-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function showSubmittedQuestionReview() {
+    if (!submittedReviewQuestions.length) return;
+    setReviewQuestionSet(submittedReviewQuestions);
+  }
+  function updateWrongReviewDesign(wrongCards) {
+    wrongReviewCards = wrongCards;
+    const count = document.getElementById('wrong-count');
+    if (count) count.textContent = wrongCards.length;
+    const wrongButton = document.getElementById('review-wrong-only');
+    if (wrongButton) wrongButton.disabled = wrongCards.length === 0;
   }
   function buildWrongReviewCards(wrongCards) {
     const container = document.getElementById('wrong-review');
@@ -18192,8 +18354,24 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (examSubmitted) return;
     clearInterval(timerId); examSubmitted = true; document.body.classList.add('review-mode', 'submitted');
     questions.forEach(card => { card.querySelectorAll('input, select, textarea, button').forEach(el => { if (!el.closest('.actions-row')) el.disabled = true; }); });
-    let scorable = 0, correct = 0; const wrongCards = [];
-    questions.forEach(card => { const result = gradeCard(card); scorable += result.scorable; correct += result.correct; const wrong = result.scorable > 0 && result.correct < result.scorable; card.classList.toggle('correct-card', result.scorable > 0 && result.correct === result.scorable); card.classList.toggle('wrong-card', wrong); if (wrong) wrongCards.push({ card, result }); });
+    submittedReviewQuestions = [...questions];
+    let scorable = 0, correct = 0; const wrongCards = [], wrongIds = [], correctIds = [];
+    questions.forEach(card => {
+      const result = gradeCard(card);
+      scorable += result.scorable;
+      correct += result.correct;
+      const cardCorrect = result.scorable > 0 && result.correct === result.scorable;
+      const wrong = result.scorable > 0 && result.correct < result.scorable;
+      card.classList.toggle('correct-card', cardCorrect);
+      card.classList.toggle('wrong-card', wrong);
+      if (wrong) {
+        wrongCards.push({ card, result });
+        wrongIds.push(card.id);
+      } else if (cardCorrect) {
+        correctIds.push(card.id);
+      }
+    });
+    syncWrongQuestionBank(wrongIds, correctIds);
     const percent = scorable ? Math.round((correct / scorable) * 100) : 0; const scaledScore = scorable ? Math.round((correct / scorable) * 1000) : 0; const passed = scaledScore >= 700;
     const scoreNumber = document.getElementById('score-number'); const passBox = document.getElementById('pass-box');
     if (scoreNumber) { scoreNumber.textContent = scaledScore; scoreNumber.classList.toggle('fail', !passed); }
@@ -18202,7 +18380,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const scoreCorrect = document.getElementById('score-correct'); if (scoreCorrect) scoreCorrect.textContent = correct;
     const scoreTotal = document.getElementById('score-total'); if (scoreTotal) scoreTotal.textContent = scorable;
     const scorePercent = document.getElementById('score-percent'); if (scorePercent) scorePercent.textContent = percent + '%';
-    buildWrongReviewCards(wrongCards); document.getElementById('results').hidden = false; document.getElementById('submit-exam').disabled = true; window.scrollTo({ top: 0, behavior: 'smooth' });
+    buildWrongReviewCards(wrongCards); updateWrongReviewDesign(wrongCards); document.getElementById('results').hidden = false; document.getElementById('submit-exam').disabled = true; window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   document.addEventListener('DOMContentLoaded', () => { installScoreReport(); cleanupQuestionTitles(); setupFillBlanks(); cleanChoiceMarkers(); applyTermNames(document); setupMatching(); setupOrdering(); if (!document.getElementById('timer-floating')) { const timer = document.createElement('div'); timer.id = 'timer-floating'; timer.className = 'timer-floating'; timer.textContent = document.getElementById('timer')?.textContent || '60:00'; document.body.appendChild(timer); } });
   const originalRenderTimer = window.renderTimer;
@@ -18212,9 +18390,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 <script>
 (() => {
   const glossaryPairs = [
-    ['Azure Bot Service', 'Azure Bot Service'],
-    ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
-    ['Power Virtual Agents', 'Power Virtual Agents'],
+    ['Azure Bot Service', 'Azure 機器人服務'],
+    ['Microsoft Bot Framework', 'Microsoft 機器人架構'],
+    ['Power Virtual Agents', 'Power 虛擬代理程式'],
     ['Azure Kubernetes Service', 'Azure Kubernetes Service (AKS)'],
     ['Azure Kubernetes Service (AKS)', 'Azure Kubernetes Service (AKS)'],
     ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
@@ -18583,9 +18761,15 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   function normalizeExisting(value) {
     return clean(value)
       .replace(/（([^（）]*[A-Za-z][^（）]*)）/g, '($1)')
+      .replace(/^(.+?)\s*\(\s*\1\s*\(([^()]*)\)\s*\)$/i, '$1 ($2)')
+      .replace(/^(.+?)\s*\(\s*\1\s*\)$/i, '$1')
       .replace(/\s*\(([^()]*)\)\s*\(\1\)/gi, ' ($1)')
       .replace(/\s{2,}/g, ' ')
       .trim();
+  }
+
+  function hasExistingAnnotation(value) {
+    return /[（(][^（）()]{1,120}[）)]/.test(value);
   }
 
   function appendEnglishName(value) {
@@ -18595,12 +18779,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (!body || body === '請選擇' || body === '是' || body === '否') return prefix + body;
 
     const bodyNormalized = normalizeExisting(body);
+    if (hasExistingAnnotation(bodyNormalized)) return prefix + bodyNormalized;
     const punctuation = bodyNormalized.match(/[。；;:：,，]+$/)?.[0] || '';
     const bodyCore = punctuation ? bodyNormalized.slice(0, -punctuation.length).trim() : bodyNormalized;
     const base = stripEnglishParens(bodyCore);
     const english = glossary.get(base) || glossary.get(bodyNormalized);
     if (english) {
-      return prefix + base + ' (' + english + ')' + punctuation;
+      const cleanEnglish = clean(english);
+      if (cleanEnglish.toLowerCase() === base.toLowerCase()) return prefix + bodyNormalized;
+      if (cleanEnglish.toLowerCase().startsWith(base.toLowerCase() + ' ')) return prefix + cleanEnglish + punctuation;
+      return prefix + base + ' (' + cleanEnglish + ')' + punctuation;
     }
 
     if (!chinese.test(bodyNormalized)) return prefix + bodyNormalized;
@@ -18608,7 +18796,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function optionKey(value) {
-    return stripEnglishParens(splitChoice(value).body)
+    return clean(splitChoice(value).body).replace(/\s*[（(][^）)]*[）)]/g, '')
       .replace(/^答案\s*[:：]\s*/i, '')
       .replace(/[。；;:：,，]+$/g, '')
       .toLowerCase();
@@ -18774,7 +18962,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return (value || '').replace(/\s+/g, ' ').trim();
   }
   function stripEnglish(value) {
-    return clean(value).replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g, '');
+    return clean(value).replace(/\s*[（(][^）)]*[）)]/g, '');
   }
   function optionKey(value) {
     return stripEnglish(value).replace(/^答案\s*[:：]\s*/i, '').replace(/^[A-E]\.\s*/i, '').replace(/^\d+\.\s*/, '').replace(/[()（）\s]/g, '').toLowerCase();
@@ -18863,7 +19051,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function stripEnglish(value) {
     return clean(value)
-      .replace(/\s*[（(][^）)]*[A-Za-z][^）)]*[）)]/g, '')
+      .replace(/\s*[（(][^）)]*[）)]/g, '')
       .replace(/[。；;，,]+$/g, '')
       .trim();
   }
@@ -19128,6 +19316,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return {
       enableButton: document.getElementById('enable-exam'),
       startButton: document.getElementById('start-exam'),
+      wrongButton: document.getElementById('start-wrong-exam'),
       status: document.getElementById('enable-status'),
       input: document.getElementById('exam-practice-code')
     };
@@ -19135,6 +19324,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function setUnlocked(value) {
     examUnlocked = value;
+    window.ai900PracticeUnlocked = value;
     const { enableButton, startButton, status } = getParts();
     if (startButton) {
       startButton.disabled = !value;
@@ -19145,6 +19335,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       enableButton.textContent = value ? '已啟用' : '啟用';
     }
     if (status) status.textContent = value ? '已啟用，可以開始作答。' : '輸入練習碼後即可開始，本頁不會送出資料。';
+    if (typeof window.ai900RefreshWrongBank === 'function') window.ai900RefreshWrongBank();
   }
 
   function activatePractice() {
@@ -19161,7 +19352,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function initLock() {
-    const { enableButton, startButton, input } = getParts();
+    const { enableButton, startButton, wrongButton, input } = getParts();
     setUnlocked(false);
     enableButton?.addEventListener('click', activatePractice);
     input?.addEventListener('input', () => {
@@ -19172,6 +19363,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       if (event.key === 'Enter') activatePractice();
     });
     startButton?.addEventListener('click', event => {
+      if (examUnlocked) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      activatePractice();
+    }, true);
+    wrongButton?.addEventListener('click', event => {
       if (examUnlocked) return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -19191,6 +19388,20 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       return originalStartExam.apply(this, args);
     };
     window.startExam.__practiceCodeWrapped = true;
+  }
+
+  const originalStartWrongExam = window.startWrongExam;
+  if (typeof originalStartWrongExam === 'function' && !originalStartWrongExam.__practiceCodeWrapped) {
+    window.startWrongExam = function (...args) {
+      if (!examUnlocked) {
+        const { input, status } = getParts();
+        if (status) status.textContent = '請先輸入正確的練習碼。';
+        input?.focus();
+        return;
+      }
+      return originalStartWrongExam.apply(this, args);
+    };
+    window.startWrongExam.__practiceCodeWrapped = true;
   }
 
   document.addEventListener('DOMContentLoaded', initLock);
