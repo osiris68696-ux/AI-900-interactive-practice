@@ -47,27 +47,13 @@ h1 { margin: 0; font-size: 1.35rem; letter-spacing: 0; }
 .toggle-line input { width: 18px; height: 18px; accent-color: var(--blue); }
 .start-actions { margin-top: auto; display: grid; gap: 10px; }
 #start-exam { min-height: 48px; font-weight: 800; }
-.unlock-button { min-height: 48px; border-color: #b8c8ff; background: #eef2ff; color: #4338ca; font-weight: 900; box-shadow: inset 0 -2px 0 rgba(67, 56, 202, .08); }
-.unlock-button.unlocked { border-color: #86efac; background: #ecfdf3; color: #047857; }
-.unlock-status { color: #475467; font-size: .88rem; margin: 0; }
-.unlock-modal[hidden] { display: none; }
-.unlock-modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: rgba(16, 24, 40, .46); backdrop-filter: blur(3px); }
-.unlock-dialog { position: relative; width: min(420px, 100%); border: 1px solid #dbe5ff; border-radius: 18px; background: #fff; padding: 30px 30px 24px; box-shadow: 0 24px 80px rgba(16, 24, 40, .28); text-align: center; overflow: hidden; }
-.unlock-dialog::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #facc15, #7c3aed, #2aa3c7); }
-.unlock-icon { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; border: 1px solid #dfe4ff; background: #eef2ff; color: #4f46e5; font-size: 1.7rem; }
-.unlock-pikachu { position: absolute; right: 24px; top: 46px; width: 84px; height: 66px; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
-.unlock-dialog h2 { margin: 0 0 6px; font-size: 1.7rem; color: #172033; }
-.unlock-dialog p { margin: 0; color: #667085; }
-.unlock-password { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
-.password-dots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 12px; margin: 28px 0 16px; padding-bottom: 18px; border-bottom: 2px solid #4f46e5; }
-.password-dot { width: 12px; height: 12px; border-radius: 50%; background: #d0d5dd; margin: 0 auto; transition: background .15s ease, transform .15s ease; }
-.password-dot.filled { background: #4f46e5; transform: scale(1.12); }
-.unlock-error { min-height: 22px; color: var(--bad) !important; font-weight: 800; margin-bottom: 12px !important; }
-.unlock-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.unlock-actions button { min-height: 48px; border-radius: 10px; font-weight: 900; }
-.unlock-submit { background: #4f46e5; border-color: #4f46e5; color: #fff; box-shadow: 0 8px 18px rgba(79, 70, 229, .25); }
-.unlock-submit:hover:not(:disabled) { background: #4338ca; color: #fff; }
-.unlock-cancel { background: #f2f4f7; border-color: #f2f4f7; color: #475467; }
+.enable-button { min-height: 48px; border-color: #b8c8ff; background: #eef2ff; color: #4338ca; font-weight: 900; box-shadow: inset 0 -2px 0 rgba(67, 56, 202, .08); }
+.enable-button.enabled { border-color: #86efac; background: #ecfdf3; color: #047857; }
+.enable-status { color: #475467; font-size: .88rem; margin: 0; }
+.practice-code-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+.practice-code-row label { font-weight: 900; color: #10243b; white-space: nowrap; }
+.practice-code-input { width: 100%; border: 1px solid #c7d2fe; border-radius: 8px; padding: 11px 12px; background: #fff; color: #101828; min-height: 48px; }
+.practice-code-input:focus { outline: 3px solid rgba(79, 70, 229, .18); border-color: #4f46e5; }
 .setup-note { color: var(--muted); font-size: .9rem; margin: 0; }
 .exam-layout { display: grid; grid-template-columns: 1fr 270px; gap: 18px; align-items: start; }
 .exam-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
@@ -618,30 +604,18 @@ body:not(.exam-active) .timer-floating {
           <div class="toggle-line"><input type="checkbox" id="shuffle-questions" checked><label for="shuffle-questions">隨機抽題</label></div>
         </div>
         <div class="start-actions">
-          <button id="unlock-exam" class="unlock-button" type="button"><span aria-hidden="true">🔒</span> 點擊解鎖（隨機題型）</button>
+          <div class="practice-code-row">
+            <label for="exam-practice-code">練習碼</label>
+            <input id="exam-practice-code" class="practice-code-input" type="text" maxlength="9" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="text" placeholder="請輸入練習碼">
+            <button id="enable-exam" class="enable-button" type="button">啟用</button>
+          </div>
           <button id="start-exam" class="primary" type="button" disabled aria-disabled="true">開始作答</button>
-          <p id="unlock-status" class="unlock-status">請先輸入密碼解鎖考場。</p>
+          <p id="enable-status" class="enable-status">輸入練習碼後即可開始，本頁不會送出資料。</p>
           <p class="setup-note">可依技能範圍集中練習，或使用全部範圍模擬正式考試。</p>
         </div>
       </div>
     </div>
   </section>
-
-  <div id="unlock-modal" class="unlock-modal" hidden role="dialog" aria-modal="true" aria-labelledby="unlock-title" aria-describedby="unlock-help">
-    <div class="unlock-dialog">
-      <img class="unlock-pikachu" src="assets/pikachu-transparent.gif" alt="">
-      <div class="unlock-icon" aria-hidden="true">🔒</div>
-      <h2 id="unlock-title">系統存取驗證</h2>
-      <p id="unlock-help">請輸入 9 碼密碼解鎖考場</p>
-      <input id="exam-password" class="unlock-password" type="password" maxlength="9" autocomplete="off" inputmode="text" aria-label="考場密碼">
-      <div id="password-dots" class="password-dots" aria-hidden="true"></div>
-      <p id="unlock-error" class="unlock-error" aria-live="polite"></p>
-      <div class="unlock-actions">
-        <button id="unlock-cancel" class="unlock-cancel" type="button">取消</button>
-        <button id="unlock-submit" class="unlock-submit" type="button">解鎖進入</button>
-      </div>
-    </div>
-  </div>
 
   <section id="exam-shell" hidden>
     <div id="results" class="results-panel" hidden>
@@ -9247,10 +9221,8 @@ body:not(.exam-active) .timer-floating {
             <ul>
                <li><input type="checkbox" name="exam-q166-group1" value="A" id="exam-q166-input1" data-correct="true"><label for="exam-q166-input1"> A. <span
                         data-no-highlight="true">模組 (<span class="eng-word">Module</span>)</span></label></li>
-               <li><input type="checkbox" name="exam-q166-group1" value="B" id="exam-q166-input2"><label for="exam-q166-input2"> B. <span
-                        data-no-highlight="true">計算 (<span class="eng-word">Compute</span>)</span></label></li>
-               <li><input type="checkbox" name="exam-q166-group1" value="C" id="exam-q166-input3"><label for="exam-q166-input3"> C. <span
-                        data-no-highlight="true">管線 (<span class="eng-word">Pipeline</span>)</span></label></li>
+               <li><input type="checkbox" name="exam-q166-group1" value="B" id="exam-q166-input2"><label for="exam-q166-input2"> B. 計算</label></li>
+               <li><input type="checkbox" name="exam-q166-group1" value="C" id="exam-q166-input3"><label for="exam-q166-input3"> C. 管線</label></li>
                <li><input type="checkbox" name="exam-q166-group1" value="D" id="exam-q166-input4" data-correct="true"><label for="exam-q166-input4"> D. <span
                         data-no-highlight="true">資料集 (<span class="eng-word">Dataset</span>)</span></label></li>
             </ul>
@@ -16686,15 +16658,15 @@ body:not(.exam-active) .timer-floating {
                     </ul>
                 </div>
                 <div class="answer-content" id="answer-351">
-                    <div class="answer"><strong>答案順序：</strong> A, E, D, B</div>
+                    <div class="answer"><strong>答案順序：</strong> 1, 5, 4, 2</div>
                     <div class="rationale"><strong>解析：</strong>標準的監督式學習流程如下：
                         <ol>
-                            <li><b>(A) 內嵌及準備資料集</b>：這是第一步，載入並清理資料。</li>
-                            <li><b>(E) 將資料隨機分割為訓練資料與驗證資料</b>：準備好資料後，將其分割。</li>
-                            <li><b>(D) 定型模型</b>：使用訓練資料集來訓練演算法。</li>
-                            <li><b>(B) 對驗證資料集評估模型</b>：使用從未見過的驗證資料集來評估模型的效能。</li>
+                            <li><b>(1) 內嵌及準備資料集</b>：這是第一步，載入並清理資料。</li>
+                            <li><b>(5) 將資料隨機分割為訓練資料與驗證資料</b>：準備好資料後，將其分割。</li>
+                            <li><b>(4) 定型模型</b>：使用訓練資料集來訓練演算法。</li>
+                            <li><b>(2) 對驗證資料集評估模型</b>：使用從未見過的驗證資料集來評估模型的效能。</li>
                         </ol>
-                        選項 C 是錯誤的，不應該用整個原始資料集來評估。
+                        選項3是錯誤的，不應該用整個原始資料集來評估。
                     </div>
                     <div class="exam-tip"><strong>考試小技巧：</strong>記住標準流程：準備資料 -> 分割資料 -> 訓練模型 -> 評估模型。</div>
                     <div class="url"><strong>參考資料：</strong> <a
@@ -16804,8 +16776,7 @@ body:not(.exam-active) .timer-floating {
                     <ul>
                         <li><input type="radio" name="exam-q356-group1" id="exam-q356-input1"><label for="exam-q356-input1">1. 元件</label></li>
                         <li><input type="radio" name="exam-q356-group1" id="exam-q356-input2"><label for="exam-q356-input2">2. 資料集</label></li>
-                        <li><input type="radio" name="exam-q356-group1" id="exam-q356-input3"><label for="exam-q356-input3">3. <span
-                                    data-no-highlight="true">管線 (<span class="eng-word">Pipeline</span>)</span></label></li>
+                        <li><input type="radio" name="exam-q356-group1" id="exam-q356-input3"><label for="exam-q356-input3">3. 管線</label></li>
                         <li><input type="radio" name="exam-q356-group1" id="exam-q356-input4" data-correct="true"><label for="exam-q356-input4">4. Azure Machine Learning
                                 作業</label></li>
                     </ul>
@@ -17973,7 +17944,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         token.draggable = true;
         token.dataset.letter = choice.letter;
         token.dataset.label = choice.label;
-        token.textContent = choice.letter + '. ' + appendTerms(choice.label);
+        token.textContent = choice.letter + '. ' + choice.label;
         token.addEventListener('click', () => {
           card.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
           token.classList.add('selected');
@@ -19148,125 +19119,78 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }, true);
 })();
 </script>
-<script id="ai900-exam-password-lock">
+<script id="ai900-practice-code-gate">
 (function () {
-  const PASSWORD = '01156688@';
+  const PRACTICE_CODE = '01156688@';
   let examUnlocked = false;
 
   function getParts() {
     return {
-      unlockButton: document.getElementById('unlock-exam'),
+      enableButton: document.getElementById('enable-exam'),
       startButton: document.getElementById('start-exam'),
-      status: document.getElementById('unlock-status'),
-      modal: document.getElementById('unlock-modal'),
-      input: document.getElementById('exam-password'),
-      dots: document.getElementById('password-dots'),
-      error: document.getElementById('unlock-error'),
-      submit: document.getElementById('unlock-submit'),
-      cancel: document.getElementById('unlock-cancel')
+      status: document.getElementById('enable-status'),
+      input: document.getElementById('exam-practice-code')
     };
-  }
-
-  function renderDots() {
-    const { input, dots } = getParts();
-    if (!input || !dots) return;
-    if (!dots.children.length) {
-      for (let i = 0; i < PASSWORD.length; i++) {
-        const dot = document.createElement('span');
-        dot.className = 'password-dot';
-        dots.appendChild(dot);
-      }
-    }
-    [...dots.children].forEach((dot, index) => {
-      dot.classList.toggle('filled', index < input.value.length);
-    });
   }
 
   function setUnlocked(value) {
     examUnlocked = value;
-    const { unlockButton, startButton, status } = getParts();
+    const { enableButton, startButton, status } = getParts();
     if (startButton) {
       startButton.disabled = !value;
       startButton.setAttribute('aria-disabled', value ? 'false' : 'true');
     }
-    if (unlockButton) {
-      unlockButton.classList.toggle('unlocked', value);
-      unlockButton.innerHTML = value ? '<span aria-hidden="true">✅</span> 已解鎖，可以開始作答' : '<span aria-hidden="true">🔒</span> 點擊解鎖（隨機題型）';
+    if (enableButton) {
+      enableButton.classList.toggle('enabled', value);
+      enableButton.textContent = value ? '已啟用' : '啟用';
     }
-    if (status) status.textContent = value ? '考場已解鎖。' : '請先輸入密碼解鎖考場。';
+    if (status) status.textContent = value ? '已啟用，可以開始作答。' : '輸入練習碼後即可開始，本頁不會送出資料。';
   }
 
-  function openModal() {
-    const { modal, input, error } = getParts();
-    if (!modal || !input) return;
-    input.value = '';
-    if (error) error.textContent = '';
-    renderDots();
-    modal.hidden = false;
-    window.setTimeout(() => input.focus(), 0);
-  }
-
-  function closeModal() {
-    const { modal, input, error } = getParts();
-    if (!modal || !input) return;
-    modal.hidden = true;
-    input.value = '';
-    if (error) error.textContent = '';
-    renderDots();
-  }
-
-  function submitPassword() {
-    const { input, error } = getParts();
+  function activatePractice() {
+    const { input, status } = getParts();
     if (!input) return;
-    if (input.value === PASSWORD) {
+    if (input.value === PRACTICE_CODE) {
       setUnlocked(true);
-      closeModal();
       document.getElementById('start-exam')?.focus();
       return;
     }
-    if (error) error.textContent = '密碼錯誤，請重新輸入。';
+    if (status) status.textContent = '練習碼不正確，請重新輸入。';
     input.value = '';
-    renderDots();
     input.focus();
   }
 
   function initLock() {
-    const { unlockButton, startButton, modal, input, submit, cancel } = getParts();
-    renderDots();
+    const { enableButton, startButton, input } = getParts();
     setUnlocked(false);
-    unlockButton?.addEventListener('click', openModal);
-    submit?.addEventListener('click', submitPassword);
-    cancel?.addEventListener('click', closeModal);
+    enableButton?.addEventListener('click', activatePractice);
     input?.addEventListener('input', () => {
-      input.value = input.value.slice(0, PASSWORD.length);
-      renderDots();
+      input.value = input.value.slice(0, PRACTICE_CODE.length);
+      if (examUnlocked && input.value !== PRACTICE_CODE) setUnlocked(false);
     });
     input?.addEventListener('keydown', event => {
-      if (event.key === 'Enter') submitPassword();
-      if (event.key === 'Escape') closeModal();
-    });
-    modal?.addEventListener('click', event => {
-      if (event.target === modal) closeModal();
-      else if (!event.target.closest('button')) input?.focus();
+      if (event.key === 'Enter') activatePractice();
     });
     startButton?.addEventListener('click', event => {
       if (examUnlocked) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      openModal();
+      activatePractice();
     }, true);
   }
 
   const originalStartExam = window.startExam;
-  if (typeof originalStartExam === 'function' && !originalStartExam.__passwordLockWrapped) {
+  if (typeof originalStartExam === 'function' && !originalStartExam.__practiceCodeWrapped) {
     window.startExam = function (...args) {
       if (!examUnlocked) {
-        openModal();
+        const { input, status } = getParts();
+        if (status) status.textContent = '請先輸入正確的練習碼。';
+        input?.focus();
         return;
       }
       return originalStartExam.apply(this, args);
     };
-    window.startExam.__passwordLockWrapped = true;
+    window.startExam.__practiceCodeWrapped = true;
   }
 
   document.addEventListener('DOMContentLoaded', initLock);
