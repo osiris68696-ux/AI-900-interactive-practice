@@ -1461,16 +1461,16 @@ button.shadow-card {
             <ul>
                <li><input type="radio" name="exam-q8-group1" value="A" id="exam-q8-input1" data-correct="true"><label for="exam-q8-input1"> A. <span
                         data-no-highlight="true">迴歸</span></label></li>
-               <li><input type="radio" name="exam-q8-group1" value="B" id="exam-q8-input2" data-correct="true"><label for="exam-q8-input2"> B. <span
+               <li><input type="radio" name="exam-q8-group1" value="B" id="exam-q8-input2"><label for="exam-q8-input2"> B. <span
                         data-no-highlight="true">二元分類</span></label></li>
                <li><input type="radio" name="exam-q8-group1" value="C" id="exam-q8-input3"><label for="exam-q8-input3"> C. 叢集</label></li>
-               <li><input type="radio" name="exam-q8-group1" value="D" id="exam-q8-input4" data-correct="true"><label for="exam-q8-input4"> D. <span
+               <li><input type="radio" name="exam-q8-group1" value="D" id="exam-q8-input4"><label for="exam-q8-input4"> D. <span
                         data-no-highlight="true">多類別分類</span></label></li>
             </ul>
          </div>
          <div class="answer-content" id="answer-8">
             <div class="answer">
-               <strong>答案：</strong> A, B, D (迴歸、二元分類、多類別分類都不是不受監督學習)
+               <strong>答案：</strong> A. 迴歸
             </div>
             <div class="rationale">
                <strong>解析：</strong><br>
@@ -1481,7 +1481,7 @@ button.shadow-card {
                   <li><strong>C. 叢集：</strong><span data-no-class="true">不受監督學習</span> - 不需要標籤，自動發現資料中的群組</li>
                   <li><strong>D. 多類別分類：</strong><span data-no-class="true">監督式學習</span> - 需要標籤資料來分類為多個類別</li>
                </ul>
-               因此，A、B、D 都不是不受監督學習的形式，只有 C（叢集）是。
+               因此，本題依單選題處理，答案為 A（迴歸）。
             </div>
             <div class="exam-tip">
                <strong>考試小技巧：</strong><br>
@@ -18190,7 +18190,7 @@ function startExam() { examSubmitted = false; state.review.clear(); document.bod
 function buildNavigator() { const nav = document.getElementById('question-nav'); nav.innerHTML = ''; questions.forEach((_, idx) => { const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = idx + 1; btn.addEventListener('click', () => showQuestion(idx)); nav.appendChild(btn); }); }
 function showQuestion(index) { currentIndex = Math.max(0, Math.min(index, questions.length - 1)); questions.forEach((card, idx) => card.classList.toggle('current', idx === currentIndex)); document.querySelectorAll('#question-nav button').forEach((btn, idx) => btn.classList.toggle('active', idx === currentIndex)); document.getElementById('position').textContent = (currentIndex + 1) + ' / ' + questions.length; document.getElementById('prev-question').disabled = currentIndex === 0; document.getElementById('next-question').disabled = currentIndex === questions.length - 1; document.getElementById('mark-review').classList.toggle('selected', state.review.has(questions[currentIndex]?.id)); updateProgress(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function isAnswered(card) { const groups = new Map(); card.querySelectorAll('input[type="radio"]').forEach(input => { if (!groups.has(input.name)) groups.set(input.name, false); if (input.checked) groups.set(input.name, true); }); const checkboxGroups = new Set([...card.querySelectorAll('input[type="checkbox"]')].map(input => input.name || input.id)); const checkboxAnswered = checkboxGroups.size === 0 || [...checkboxGroups].some(name => [...card.querySelectorAll('input[type="checkbox"]')].some(input => (input.name || input.id) === name && input.checked)); const radioAnswered = [...groups.values()].every(Boolean); const ynGroups = [...card.querySelectorAll('.yn-options')]; const ynAnswered = ynGroups.every(group => group.querySelector('.selected')); const textInputs = [...card.querySelectorAll('input[type="text"], textarea')]; const textAnswered = textInputs.length === 0 || textInputs.some(input => normalizeText(input.value)); const selects = [...card.querySelectorAll('select')]; const selectsAnswered = selects.length === 0 || selects.every(select => select.value); const hasControls = groups.size + checkboxGroups.size + ynGroups.length + textInputs.length + selects.length > 0; return hasControls && radioAnswered && checkboxAnswered && ynAnswered && textAnswered && selectsAnswered; }
-function gradeCard(card) { let scorable = 0, correct = 0; const radioNames = [...new Set([...card.querySelectorAll('input[type="radio"]')].map(i => i.name))]; radioNames.forEach(name => { const group = [...card.querySelectorAll('input[type="radio"]')].filter(i => i.name === name); const expected = group.find(i => i.dataset.correct === 'true'); if (!expected) return; scorable++; const picked = group.find(i => i.checked); if (picked && picked === expected) correct++; }); const checkboxNames = [...new Set([...card.querySelectorAll('input[type="checkbox"]')].map(i => i.name || i.id))]; checkboxNames.forEach(name => { const group = [...card.querySelectorAll('input[type="checkbox"]')].filter(i => (i.name || i.id) === name); const hasCorrect = group.some(i => i.dataset.correct === 'true'); if (!hasCorrect) return; scorable++; if (group.every(i => i.checked === (i.dataset.correct === 'true'))) correct++; }); card.querySelectorAll('.yn-options').forEach(group => { if (!group.dataset.correct) return; scorable++; const picked = group.querySelector('.selected')?.dataset.value; if (picked === group.dataset.correct) correct++; }); return { scorable, correct }; }
+function gradeCard(card) { let scorable = 0, correct = 0; const radioNames = [...new Set([...card.querySelectorAll('input[type="radio"]')].map(i => i.name))]; radioNames.forEach(name => { const group = [...card.querySelectorAll('input[type="radio"]')].filter(i => i.name === name); const expected = group.filter(i => i.dataset.correct === 'true'); if (!expected.length) return; scorable++; const picked = group.find(i => i.checked); if (picked && expected.includes(picked)) correct++; }); const checkboxNames = [...new Set([...card.querySelectorAll('input[type="checkbox"]')].map(i => i.name || i.id))]; checkboxNames.forEach(name => { const group = [...card.querySelectorAll('input[type="checkbox"]')].filter(i => (i.name || i.id) === name); const hasCorrect = group.some(i => i.dataset.correct === 'true'); if (!hasCorrect) return; scorable++; if (group.every(i => i.checked === (i.dataset.correct === 'true'))) correct++; }); card.querySelectorAll('.yn-options').forEach(group => { if (!group.dataset.correct) return; scorable++; const picked = group.querySelector('.selected')?.dataset.value; if (picked === group.dataset.correct) correct++; }); return { scorable, correct }; }
 function updateProgress() { if (!questions.length) return; let answered = 0; questions.forEach((card, idx) => { const done = isAnswered(card); if (done) answered++; const navBtn = document.querySelectorAll('#question-nav button')[idx]; if (navBtn) { navBtn.classList.toggle('answered', done); navBtn.classList.toggle('flagged', state.review.has(card.id)); } }); document.getElementById('answered-count').textContent = answered + ' / ' + questions.length; document.getElementById('progress-bar').style.width = Math.round((answered / questions.length) * 100) + '%'; }
 function startTimer() { clearInterval(timerId); renderTimer(); timerId = setInterval(() => { remainingSeconds--; renderTimer(); if (remainingSeconds <= 0) submitExam(true); }, 1000); }
 function renderTimer() { const min = Math.max(0, Math.floor(remainingSeconds / 60)); const sec = Math.max(0, remainingSeconds % 60); document.getElementById('timer').textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0'); }
@@ -18290,7 +18290,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         });
       });
       const anchors = [...body.querySelectorAll('.blank-anchor')];
-      const answerSpans = [...body.querySelectorAll('[data-no-highlight="true"], [data-no-class="true"]')].filter(el => cleanText(el.textContent).length > 0);
+      const answerSpans = [...body.querySelectorAll('[data-no-highlight="true"], [data-no-class="true"], .chinese-noun')].filter(el => cleanText(el.textContent).length > 0);
       const englishAnswerSpans = [...body.querySelectorAll('.eng-word, .eng-abbr')].filter(el => cleanText(el.textContent).length > 0);
       const answerKey = comparableTerm(getAnswerText(card));
       const matchingAnswerSpan = [...answerSpans, ...englishAnswerSpans].find(el => { const key = comparableTerm(el.textContent); return key && answerKey && (key.includes(answerKey) || answerKey.includes(key)); });
@@ -18371,14 +18371,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
           const keptHasEnglish = /[（(][^）)]{1,120}[）)]/.test(keptText);
           if (textHasEnglish && !keptHasEnglish) {
             kept.textContent = text;
-            kept.value = text;
           }
           option.remove();
           return;
         }
         seen.set(key, option);
         option.textContent = text;
-        option.value = text;
       });
     });
   }
@@ -19267,11 +19265,13 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (!body || body === '請選擇' || body === '是' || body === '否') return prefix + body;
 
     const bodyNormalized = normalizeExisting(body);
-    if (hasExistingAnnotation(bodyNormalized)) return prefix + bodyNormalized;
     const punctuation = bodyNormalized.match(/[。；;:：,，]+$/)?.[0] || '';
     const bodyCore = punctuation ? bodyNormalized.slice(0, -punctuation.length).trim() : bodyNormalized;
     const base = stripEnglishParens(bodyCore);
     const english = glossary.get(base) || glossary.get(bodyNormalized);
+    if (/^Azure\s+AI\b/i.test(clean(english || '')) && chinese.test(base)) return prefix + clean(english) + punctuation;
+    if (/^Azure\s+AI\b/i.test(base) && chinese.test(base) && english) return prefix + clean(english) + punctuation;
+    if (hasExistingAnnotation(bodyNormalized)) return prefix + bodyNormalized;
     if (english) {
       const cleanEnglish = clean(english);
       if (cleanEnglish.toLowerCase() === base.toLowerCase()) return prefix + bodyNormalized;
@@ -19321,7 +19321,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         }
         seen.set(key, option);
         option.textContent = next;
-        option.value = next;
       });
     });
   }
@@ -20268,6 +20267,39 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     };
   }
   document.addEventListener('DOMContentLoaded', injectEssayAnswers);
+})();
+</script>
+<script id="ai900-repeat-exam-stability">
+(function () {
+  const stableQuestionMarkup = [...document.querySelectorAll('.question-card')].map(card => card.outerHTML);
+
+  function restoreStableQuestions() {
+    if (!stableQuestionMarkup.length) return;
+    const currentCards = [...document.querySelectorAll('.question-card')];
+    if (currentCards.length !== stableQuestionMarkup.length) return;
+    currentCards.forEach((card, index) => {
+      card.outerHTML = stableQuestionMarkup[index];
+    });
+    document.body.classList.remove('review-mode', 'show-all-review', 'submitted');
+    const results = document.getElementById('results');
+    if (results) results.hidden = true;
+    const wrongReview = document.getElementById('wrong-review');
+    if (wrongReview) wrongReview.innerHTML = '';
+  }
+
+  function installStableStartGuard() {
+    if (typeof window.startExam !== 'function' || window.startExam.__stableStartGuard) return;
+    const originalStartExam = window.startExam;
+    window.startExam = function (...args) {
+      restoreStableQuestions();
+      return originalStartExam.apply(this, args);
+    };
+    window.startExam.__stableStartGuard = true;
+  }
+
+  installStableStartGuard();
+  document.addEventListener('DOMContentLoaded', installStableStartGuard);
+  window.addEventListener('load', installStableStartGuard);
 })();
 </script>
 </body>
