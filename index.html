@@ -88,8 +88,9 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 body.review-mode .answer-content { display: block; }
 .answer-content { display: none; margin-top: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
 .answer-content.show { display: block; }
-.answer-speak { margin-left: 8px; min-height: 28px; padding: 4px 9px; border-radius: 999px; border: 1px solid #b8ccf7; background: #fffdf0; color: #172554; font-weight: 800; cursor: pointer; }
-.answer-speak-text { margin-left: 4px; color: #475467; font-size: .92em; }
+.choice-speak { margin-left: 8px; min-height: 28px; padding: 4px 9px; border-radius: 999px; border: 1px solid #b8ccf7; background: #fffdf0; color: #172554; font-weight: 800; cursor: pointer; }
+.choice-speak-text { margin-left: 4px; color: #475467; font-size: .92em; }
+.choice-speak-select { margin-left: 8px; vertical-align: middle; }
 .manual-answer-box {
   margin-top: 18px;
   display: grid;
@@ -20399,7 +20400,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   document.addEventListener('DOMContentLoaded', injectEssayAnswers);
 })();
 </script>
-<script id="ai900-answer-speech">
+<script id="ai900-choice-speech">
 (function () {
   function clean(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
@@ -20418,23 +20419,38 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function addSpeechButton(target, english) {
-    if (!target || !english || target.querySelector?.('.answer-speak')) return;
+    if (!target || !english || target.nextElementSibling?.classList?.contains('choice-speak')) return;
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'answer-speak';
+    button.className = 'choice-speak';
     button.dataset.speak = english;
     button.textContent = '朗讀';
-    const text = document.createElement('span');
-    text.className = 'answer-speak-text';
-    text.textContent = english;
-    target.append(' ', button, ' ', text);
+    target.insertAdjacentElement('afterend', button);
   }
 
-  function enhanceAnswerSpeech(root = document) {
-    root.querySelectorAll('.answer-content .answer').forEach(answer => {
-      [...answer.querySelectorAll('li')].forEach(item => addSpeechButton(item, extractEnglish(item.textContent)));
-      const directText = clean([...answer.childNodes].filter(node => node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE).map(node => node.textContent || '').join(' '));
-      if (!answer.querySelector('li') && !answer.querySelector('.answer-speak')) addSpeechButton(answer, extractEnglish(directText));
+  function optionTextWithoutSpeech(node) {
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll?.('.choice-speak, .choice-speak-text').forEach(el => el.remove());
+    return clean(clone.textContent || '');
+  }
+
+  function enhanceChoiceSpeech(root = document) {
+    root.querySelectorAll('.question-body label, .question-body .match-token, .question-body .order-token, .question-body .yn-options button').forEach(item => {
+      addSpeechButton(item, extractEnglish(optionTextWithoutSpeech(item)));
+    });
+    root.querySelectorAll('.question-body select').forEach(select => {
+      if (select.dataset.choiceSpeechReady === 'true') return;
+      select.dataset.choiceSpeechReady = 'true';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'choice-speak choice-speak-select';
+      button.textContent = '朗讀';
+      button.addEventListener('click', () => {
+        const option = select.options[select.selectedIndex];
+        const english = extractEnglish(option?.textContent || '');
+        speak(english);
+      });
+      select.insertAdjacentElement('afterend', button);
     });
   }
 
@@ -20450,21 +20466,22 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   ['setupCards', 'startExam', 'showQuestion'].forEach(name => {
     const original = window[name];
-    if (typeof original !== 'function' || original.__answerSpeechWrapped) return;
+    if (typeof original !== 'function' || original.__choiceSpeechWrapped) return;
     window[name] = function (...args) {
       const result = original.apply(this, args);
-      enhanceAnswerSpeech(document);
+      enhanceChoiceSpeech(document);
       return result;
     };
-    window[name].__answerSpeechWrapped = true;
+    window[name].__choiceSpeechWrapped = true;
   });
 
   document.addEventListener('click', event => {
-    const button = event.target.closest?.('.answer-speak[data-speak]');
+    const button = event.target.closest?.('.choice-speak[data-speak]');
     if (button) speak(button.dataset.speak);
   });
-  document.addEventListener('DOMContentLoaded', () => enhanceAnswerSpeech(document));
-  window.addEventListener('load', () => enhanceAnswerSpeech(document));
+  window.ai900EnhanceChoiceSpeech = enhanceChoiceSpeech;
+  document.addEventListener('DOMContentLoaded', () => enhanceChoiceSpeech(document));
+  window.addEventListener('load', () => enhanceChoiceSpeech(document));
 })();
 </script>
 <script id="ai900-repeat-exam-stability">
