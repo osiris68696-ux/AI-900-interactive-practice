@@ -18299,6 +18299,26 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       card.dataset.fillReady = 'true';
     });
   }
+  const serviceEnglishOnlyMap = new Map([
+    ['Azure AI 視覺', 'Azure AI Vision'],
+    ['Azure AI 視覺服務', 'Azure AI Vision'],
+    ['Azure AI 電腦視覺', 'Azure AI Vision'],
+    ['Azure AI 語言', 'Azure AI Language'],
+    ['Azure AI 語言服務', 'Azure AI Language'],
+    ['Azure AI 語音', 'Azure AI Speech'],
+    ['Azure AI 語音服務', 'Azure AI Speech'],
+    ['Azure AI 文件智慧', 'Azure AI Document Intelligence'],
+    ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
+    ['Azure AI 翻譯', 'Azure AI Translator'],
+    ['Azure AI 翻譯工具', 'Azure AI Translator'],
+    ['Azure OpenAI 服務', 'Azure OpenAI Service'],
+    ['Azure OpenAI', 'Azure OpenAI'],
+    ['Azure 機器人服務', 'Azure Bot Service'],
+    ['Azure Bot Service', 'Azure Bot Service'],
+    ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
+    ['Power Virtual Agents', 'Power Virtual Agents'],
+    ['QnA Maker', 'QnA Maker']
+  ]);
   const termMappings = [
     ['Azure AI 電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['Azure AI 電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['臉部服務中的偵測作業', 'Face Detect operation'], ['臉部服務中的驗證作業', 'Face Verify operation'], ['Azure 搜尋功能中的 AI 擴充', 'AI enrichment in Azure Search'], ['電腦視覺影像分析功能', 'Azure AI Vision Image Analysis'], ['自訂視覺影像分類功能', 'Custom Vision Image Classification'], ['語言理解功能', 'Language Understanding'], ['Azure OpenAI 服務', 'Azure OpenAI Service'], ['Azure 認知搜尋', 'Azure Cognitive Search / Azure AI Search'], ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 文件智慧', 'Azure AI Document Intelligence'], ['文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 翻譯工具', 'Azure AI Translator'], ['Azure AI 語音服務', 'Azure AI Speech'], ['Azure AI 語音', 'Azure AI Speech'], ['Azure AI 語言服務', 'Azure AI Language'], ['Azure AI 語言', 'Azure AI Language'], ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'], ['Azure AI 自訂視覺物件偵測', 'Custom Vision Object Detection'], ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'], ['Azure AI 自訂視覺分類', 'Custom Vision Classification'], ['Azure AI 視覺服務', 'Azure AI Vision'], ['Azure AI 視覺', 'Azure AI Vision'], ['Azure AI 電腦視覺', 'Azure AI Vision'], ['Azure AI 自訂視覺', 'Custom Vision'], ['電腦視覺應用程式', 'Azure AI Vision application'], ['情感分析解決方案', 'Sentiment Analysis solution'], ['機器學習模型', 'machine learning model'], ['聊天機器人', 'Chatbot'], ['Power Virtual Agents', 'Power 虛擬代理程式'], ['Microsoft Bot Framework', 'Microsoft 機器人架構'], ['Azure Bot Service', 'Azure 機器人服務'], ['公平性', 'Fairness'], ['可靠性和安全性', 'Reliability and Safety'], ['可靠性與安全性', 'Reliability and Safety'], ['隱私權和安全性', 'Privacy and Security'], ['權責性', 'Accountability'], ['包容性', 'Inclusiveness'], ['透明度', 'Transparency'], ['臉部辨識', 'Face recognition'], ['臉部', 'Face'], ['光學字元辨識', 'Optical Character Recognition'], ['語音辨識', 'Speech Recognition'], ['語音合成', 'Speech Synthesis'], ['文字分析', 'Text Analytics'], ['翻譯', 'Translation'], ['物件偵測', 'Object Detection'], ['影像分析', 'Image Analysis'], ['影像分類', 'Image Classification'], ['文件智慧', 'Azure AI Document Intelligence'], ['電腦視覺', 'Azure AI Vision'], ['自訂視覺', 'Custom Vision'], ['OCR', 'Optical Character Recognition']
   ].sort((a, b) => b[0].length - a[0].length);
@@ -18332,6 +18352,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   function alreadyHasParen(text, offset, match) { return /^\s*[（(][^）)]*[A-Za-z\u4e00-\u9fff][^）)]*[）)]/.test(text.slice(offset + match.length, offset + match.length + 80)); }
   function appendExactTerm(text) {
     const cleaned = normalizeOptionText(text);
+    const serviceEnglish = serviceEnglishOnlyMap.get(stripAnyParentheses(cleaned).replace(/^[A-Z0-9]\.\s*/i, '').trim());
+    if (serviceEnglish) {
+      const prefixMatch = cleaned.match(/^((?:[A-Z]|\d+)\.\s*)/);
+      return (prefixMatch ? prefixMatch[1] : '') + serviceEnglish;
+    }
     if (/[A-Za-z]/.test(cleaned)) return cleaned;
     const prefixMatch = cleaned.match(/^((?:[A-Z]|\d+)\.\s*)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
@@ -18345,13 +18370,25 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (exact !== normalizeOptionText(text)) return exact;
     return exact.replace(termPattern, (match, offset, fullText) => alreadyHasParen(fullText, offset, match) ? match : match + ' (' + termMap.get(match) + ')');
   }
+  function normalizeServiceEnglishOnly(text) {
+    let next = normalizeOptionText(text);
+    const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
+    const body = prefix ? next.slice(prefix.length).trim() : next;
+    const withoutParens = stripAnyParentheses(body).trim();
+    const direct = serviceEnglishOnlyMap.get(withoutParens) || serviceEnglishOnlyMap.get(body);
+    if (direct) return prefix + direct;
+    for (const [source, english] of serviceEnglishOnlyMap) {
+      if (body.includes(source)) return prefix + body.replace(source, english).replace(/\s*[（(][^）)]*[\u4e00-\u9fff][^）)]*[）)]/g, '').trim();
+    }
+    return next;
+  }
   function applyTermNames(root) {
     const selector = '.question-body label, .question-body select option, .question-body li, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .order-slot, .question-body .drag-choice, .question-body .drop-zone';
     (root || document).querySelectorAll(selector).forEach(element => {
       if (element.closest('.answer-content')) return;
       if (element.matches('li') && element.querySelector('input, select, textarea, button, label')) return;
       const before = element.textContent || '';
-      const after = appendTerms(before);
+      const after = normalizeServiceEnglishOnly(appendTerms(before));
       if (after && after !== before) element.textContent = after;
     });
     dedupeSelectOptions(root || document);
@@ -18361,7 +18398,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && cleanText(option.textContent) === '請選擇') return;
-        const text = (window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value);
+        const text = normalizeServiceEnglishOnly((window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value));
         const key = optionDedupeKey(text);
         if (!key) return;
         if (seen.has(key)) {
@@ -18793,6 +18830,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const container = document.getElementById('wrong-review');
     if (!container) return;
     container.innerHTML = '';
+    wrongCards = wrongCards.filter(({ card }) => {
+      if (!card || typeof gradeCard !== 'function') return false;
+      const result = gradeCard(card);
+      return result.scorable > 0 && result.correct < result.scorable;
+    });
     if (!wrongCards.length) { container.innerHTML = '<div class="no-wrong-review">沒有自動判定的錯題。</div>'; return; }
     wrongCards.forEach(({ card, result }, index) => {
       const review = document.createElement('section');
@@ -18819,6 +18861,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     });
     return result;
   };
+  function normalizeChoiceState(card) {
+    card.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+      const label = input.id ? card.querySelector('label[for="' + CSS.escape(input.id) + '"]') : null;
+      if (label?.classList.contains('selected')) input.checked = true;
+    });
+  }
   const originalIsAnsweredForMatching = window.isAnswered;
   if (typeof originalIsAnsweredForMatching === 'function') window.isAnswered = function(card) {
     const matchingAreas = [...card.querySelectorAll('.matching-answer-area[data-correct]')];
@@ -18843,6 +18891,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     submittedReviewQuestions = [...questions];
     let scorable = 0, correct = 0; const wrongCards = [], wrongIds = [], correctIds = [];
     questions.forEach(card => {
+      normalizeChoiceState(card);
       const result = gradeCard(card);
       scorable += result.scorable;
       correct += result.correct;
@@ -18876,9 +18925,13 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 <script>
 (() => {
   const glossaryPairs = [
-    ['Azure Bot Service', 'Azure 機器人服務'],
-    ['Microsoft Bot Framework', 'Microsoft 機器人架構'],
-    ['Power Virtual Agents', 'Power 虛擬代理程式'],
+    ['Azure Bot Service', 'Azure Bot Service'],
+    ['Azure 機器人服務', 'Azure Bot Service'],
+    ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
+    ['Microsoft 機器人架構', 'Microsoft Bot Framework'],
+    ['Power Virtual Agents', 'Power Virtual Agents'],
+    ['Power 虛擬代理程式', 'Power Virtual Agents'],
+    ['QnA Maker', 'QnA Maker'],
     ['Azure Kubernetes Service', 'Azure Kubernetes Service (AKS)'],
     ['Azure Kubernetes Service (AKS)', 'Azure Kubernetes Service (AKS)'],
     ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
@@ -19258,6 +19311,34 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return /[（(][^（）()]{1,120}[）)]/.test(value);
   }
 
+  function serviceEnglishOnly(value) {
+    const text = clean(value);
+    const serviceMap = new Map([
+      ['Azure AI 視覺', 'Azure AI Vision'],
+      ['Azure AI 視覺服務', 'Azure AI Vision'],
+      ['Azure AI 電腦視覺', 'Azure AI Vision'],
+      ['Azure AI 語言', 'Azure AI Language'],
+      ['Azure AI 語言服務', 'Azure AI Language'],
+      ['Azure AI 語音', 'Azure AI Speech'],
+      ['Azure AI 語音服務', 'Azure AI Speech'],
+      ['Azure AI 文件智慧', 'Azure AI Document Intelligence'],
+      ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
+      ['Azure AI 翻譯', 'Azure AI Translator'],
+      ['Azure AI 翻譯工具', 'Azure AI Translator'],
+      ['Azure OpenAI 服務', 'Azure OpenAI Service'],
+      ['Azure OpenAI', 'Azure OpenAI'],
+      ['Azure 機器人服務', 'Azure Bot Service'],
+      ['Azure Bot Service', 'Azure Bot Service'],
+      ['Microsoft 機器人架構', 'Microsoft Bot Framework'],
+      ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
+      ['Power 虛擬代理程式', 'Power Virtual Agents'],
+      ['Power Virtual Agents', 'Power Virtual Agents'],
+      ['QnA Maker', 'QnA Maker']
+    ]);
+    const noParen = stripEnglishParens(text).replace(/\s*[（(][^）)]*[）)]/g, '').trim();
+    return serviceMap.get(noParen) || serviceMap.get(text) || '';
+  }
+
   function appendEnglishName(value) {
     const original = clean(value);
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
@@ -19269,6 +19350,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const bodyCore = punctuation ? bodyNormalized.slice(0, -punctuation.length).trim() : bodyNormalized;
     const base = stripEnglishParens(bodyCore);
     const english = glossary.get(base) || glossary.get(bodyNormalized);
+    const serviceOnly = serviceEnglishOnly(bodyNormalized) || serviceEnglishOnly(base);
+    if (serviceOnly) return prefix + serviceOnly + punctuation;
     if (/^Azure\s+AI\b/i.test(clean(english || '')) && chinese.test(base)) return prefix + clean(english) + punctuation;
     if (/^Azure\s+AI\b/i.test(base) && chinese.test(base) && english) return prefix + clean(english) + punctuation;
     if (hasExistingAnnotation(bodyNormalized)) return prefix + bodyNormalized;
