@@ -88,6 +88,8 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 body.review-mode .answer-content { display: block; }
 .answer-content { display: none; margin-top: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
 .answer-content.show { display: block; }
+.answer-speak { margin-left: 8px; min-height: 28px; padding: 4px 9px; border-radius: 999px; border: 1px solid #b8ccf7; background: #fffdf0; color: #172554; font-weight: 800; cursor: pointer; }
+.answer-speak-text { margin-left: 4px; color: #475467; font-size: .92em; }
 .manual-answer-box {
   margin-top: 18px;
   display: grid;
@@ -18382,13 +18384,28 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     }
     return next;
   }
+  function normalizeChoiceEnglishOnly(text) {
+    const normalized = normalizeServiceEnglishOnly(text);
+    const prefix = normalized.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
+    const body = prefix ? normalized.slice(prefix.length).trim() : normalized;
+    const parentheticalEnglish = body.match(/[（(]\s*([^（）()]*[A-Za-z][^（）()]*)\s*[）)]/);
+    if (!parentheticalEnglish) return normalized;
+    let english = cleanText(parentheticalEnglish[1]);
+    const before = body.slice(0, parentheticalEnglish.index).trim();
+    const after = body.slice(parentheticalEnglish.index + parentheticalEnglish[0].length).trim();
+    if (/^Azure\s+AI\b/i.test(english) && /服務$/.test(before)) english = english.replace(/\s+Service$/i, '');
+    if (after === '工作室') english += ' Studio';
+    else if (after === '服務' && !/\bService$/i.test(english)) english += ' Service';
+    else if (after && !/[\u4e00-\u9fff]/.test(after)) english += ' ' + after;
+    return prefix + english;
+  }
   function applyTermNames(root) {
     const selector = '.question-body label, .question-body select option, .question-body li, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .order-slot, .question-body .drag-choice, .question-body .drop-zone';
     (root || document).querySelectorAll(selector).forEach(element => {
       if (element.closest('.answer-content')) return;
       if (element.matches('li') && element.querySelector('input, select, textarea, button, label')) return;
       const before = element.textContent || '';
-      const after = normalizeServiceEnglishOnly(appendTerms(before));
+      const after = normalizeChoiceEnglishOnly(appendTerms(before));
       if (after && after !== before) element.textContent = after;
     });
     dedupeSelectOptions(root || document);
@@ -18398,7 +18415,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && cleanText(option.textContent) === '請選擇') return;
-        const text = normalizeServiceEnglishOnly((window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value));
+        const text = normalizeChoiceEnglishOnly((window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value));
         const key = optionDedupeKey(text);
         if (!key) return;
         if (seen.has(key)) {
@@ -18445,6 +18462,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const match = cleanText(span.textContent).match(/(?:^|[（(]\s*)([A-Z]|\d+)\s*[.．)]/i);
       return match ? match[1].toUpperCase() : '';
     }).filter(Boolean);
+    const slotAnswers = [];
+    [...answer.querySelectorAll('.matching-correct-answer')].forEach(span => {
+      const rowText = cleanText(span.parentElement?.textContent || span.textContent);
+      const source = rowText.match(/(?:^|\n|\s)([A-Z])\s*[.．]/i)?.[1]?.toUpperCase();
+      const slot = cleanText(span.textContent).match(/(?:^|[（(]\s*)(\d+)\s*[.．)]/i)?.[1];
+      if (source && slot) slotAnswers[Number(slot) - 1] = source;
+    });
+    if (slotAnswers.filter(Boolean).length) return slotAnswers;
     if (markedAnswers.length) return markedAnswers;
     return [...answer.innerText.matchAll(/(?:^|\n|\s)(\d+)\.\s*([A-Z])/gi)].map(match => match[2].toUpperCase());
   }
@@ -19339,9 +19364,31 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return serviceMap.get(noParen) || serviceMap.get(text) || '';
   }
 
+  function choiceEnglishOnly(value) {
+    const original = clean(value);
+    if (!original || original === '請選擇' || original === '是' || original === '否') return original;
+    const { prefix, body } = splitChoice(original);
+    if (!body || body === '請選擇' || body === '是' || body === '否') return prefix + body;
+    const serviceOnly = serviceEnglishOnly(body);
+    if (serviceOnly) return prefix + serviceOnly;
+    const normalized = normalizeExisting(body);
+    const match = normalized.match(/[（(]\s*([^（）()]*[A-Za-z][^（）()]*)\s*[）)]/);
+    if (!match) return '';
+    let english = clean(match[1]);
+    const before = normalized.slice(0, match.index).trim();
+    const after = normalized.slice(match.index + match[0].length).trim();
+    if (/^Azure\s+AI\b/i.test(english) && /服務$/.test(before)) english = english.replace(/\s+Service$/i, '');
+    if (after === '工作室') english += ' Studio';
+    else if (after === '服務' && !/\bService$/i.test(english)) english += ' Service';
+    else if (after && !/[\u4e00-\u9fff]/.test(after)) english += ' ' + after;
+    return prefix + english;
+  }
+
   function appendEnglishName(value) {
     const original = clean(value);
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
+    const choiceOnly = choiceEnglishOnly(original);
+    if (choiceOnly) return choiceOnly;
     const { prefix, body } = splitChoice(original);
     if (!body || body === '請選擇' || body === '是' || body === '否') return prefix + body;
 
@@ -20350,6 +20397,74 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     };
   }
   document.addEventListener('DOMContentLoaded', injectEssayAnswers);
+})();
+</script>
+<script id="ai900-answer-speech">
+(function () {
+  function clean(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function extractEnglish(value) {
+    const text = clean(value)
+      .replace(/^答案\s*[:：]\s*/i, '')
+      .replace(/^[A-Z0-9]\s*[.．]\s*/i, '');
+    const paren = [...text.matchAll(/[（(]\s*([^（）()]*[A-Za-z][^（）()]*)\s*[）)]/g)]
+      .map(match => clean(match[1]))
+      .filter(Boolean);
+    if (paren.length) return paren[paren.length - 1];
+    const englishOnly = text.replace(/[\u4e00-\u9fff：:，,。；;、]/g, ' ').replace(/\s+/g, ' ').trim();
+    return /[A-Za-z]/.test(englishOnly) ? englishOnly : '';
+  }
+
+  function addSpeechButton(target, english) {
+    if (!target || !english || target.querySelector?.('.answer-speak')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'answer-speak';
+    button.dataset.speak = english;
+    button.textContent = '朗讀';
+    const text = document.createElement('span');
+    text.className = 'answer-speak-text';
+    text.textContent = english;
+    target.append(' ', button, ' ', text);
+  }
+
+  function enhanceAnswerSpeech(root = document) {
+    root.querySelectorAll('.answer-content .answer').forEach(answer => {
+      [...answer.querySelectorAll('li')].forEach(item => addSpeechButton(item, extractEnglish(item.textContent)));
+      const directText = clean([...answer.childNodes].filter(node => node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE).map(node => node.textContent || '').join(' '));
+      if (!answer.querySelector('li') && !answer.querySelector('.answer-speak')) addSpeechButton(answer, extractEnglish(directText));
+    });
+  }
+
+  function speak(text) {
+    const phrase = clean(text);
+    if (!phrase || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  ['setupCards', 'startExam', 'showQuestion'].forEach(name => {
+    const original = window[name];
+    if (typeof original !== 'function' || original.__answerSpeechWrapped) return;
+    window[name] = function (...args) {
+      const result = original.apply(this, args);
+      enhanceAnswerSpeech(document);
+      return result;
+    };
+    window[name].__answerSpeechWrapped = true;
+  });
+
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('.answer-speak[data-speak]');
+    if (button) speak(button.dataset.speak);
+  });
+  document.addEventListener('DOMContentLoaded', () => enhanceAnswerSpeech(document));
+  window.addEventListener('load', () => enhanceAnswerSpeech(document));
 })();
 </script>
 <script id="ai900-repeat-exam-stability">
