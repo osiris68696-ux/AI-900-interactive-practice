@@ -18362,7 +18362,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     next = next.replace(/服務中的\s+/g, '服務中的').replace(/\s+作業/g, '作業');
     next = next.replace(/(\([^)]{2,80}\))(?:\s*\1)+/gi, '$1');
     next = next.replace(/(\([^)]*[A-Za-z][^)]*\))\s*\([^)]*[A-Za-z][^)]*\)/g, '$1');
-    next = next.replace(/\s*[）)]\s*$/g, '').trim();
     return next;
   }
   function alreadyHasParen(text, offset, match) { return /^\s*[（(][^）)]*[A-Za-z\u4e00-\u9fff][^）)]*[）)]/.test(text.slice(offset + match.length, offset + match.length + 80)); }
@@ -18393,6 +18392,10 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (!/[\u4e00-\u9fff]/.test(zh)) return prefix + en + punctuation;
     return prefix + en + '（' + zh + '）' + punctuation;
   }
+  function isCleanEnglishFirst(text) {
+    const body = cleanText(text).replace(/^((?:[A-Z]|\d+)\.\s*)/, '');
+    return /^[A-Za-z][A-Za-z0-9+\- /.]+（[^（）()]*[\u4e00-\u9fff][^（）()]*）$/.test(body);
+  }
   function formatExistingEnglishChoice(text) {
     const normalized = normalizeOptionText(text);
     const prefix = normalized.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
@@ -18402,7 +18405,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return zh ? prefix + body + '（' + zh + '）' : normalized;
   }
   function normalizeServiceEnglishOnly(text) {
-    let next = normalizeOptionText(text);
+    let next = cleanupDisplayChoiceText(normalizeOptionText(text));
+    if (isCleanEnglishFirst(next)) return next;
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
     const withoutParens = stripAnyParentheses(body).trim();
@@ -18414,7 +18418,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return next;
   }
   function normalizeChoiceEnglishOnly(text) {
-    const normalized = normalizeServiceEnglishOnly(text);
+    const normalized = cleanupDisplayChoiceText(normalizeServiceEnglishOnly(text));
+    if (isCleanEnglishFirst(normalized)) return normalized;
     const prefix = normalized.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? normalized.slice(prefix.length).trim() : normalized;
     const parentheticalEnglish = body.match(/[（(]\s*([^（）()]*[A-Za-z][^（）()]*)\s*[）)]/);
@@ -18429,11 +18434,48 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return formatEnglishFirst(prefix, before || body, english);
   }
   function cleanupDisplayChoiceText(text) {
-    return cleanText(text)
-      .replace(/\s*[）)]\s*(?=$)/g, '')
+    let next = cleanText(text)
+      .replace(/([）)])\s*[）)]+$/g, '$1')
       .replace(/（\s*）/g, '')
       .replace(/\(\s*\)/g, '')
       .trim();
+    const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
+    const body = prefix ? next.slice(prefix.length).trim() : next;
+    const knownRepeats = [
+      ['Azure AI Vision', '電腦視覺'],
+      ['Azure AI Language', '語言'],
+      ['Azure AI Speech', '語音'],
+      ['Azure AI Document Intelligence', '文件智慧'],
+      ['Azure Bot Service', 'Azure 機器人服務'],
+      ['Microsoft Bot Framework', 'Microsoft 機器人架構'],
+      ['Power Virtual Agents', 'Power 虛擬代理程式'],
+      ['Azure Machine Learning', 'Azure Machine Learning']
+    ];
+    for (const [term, fallbackZh] of knownRepeats) {
+      const hits = body.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || [];
+      if (hits.length > 1) {
+        const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）/)?.[1] || fallbackZh;
+        return prefix + term + (zh && /[\u4e00-\u9fff]/.test(zh) ? '（' + zh + '）' : '');
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      const cleaned = next
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*(?:\(\s*\1\s*)+/gi, '$1 (')
+        .replace(/\b(Azure AI Vision)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Language)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Speech)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Document Intelligence)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*\)/gi, '$1')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*（\s*\1\s*）/gi, '$1')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*（([^（）()]+)）\s*\)/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*（\s*\1\s*\(([^（）()]+)\)\s*）/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*\(([^（）()]+)\)\s*\)/gi, '$1（$2）')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+      if (cleaned === next) break;
+      next = cleaned;
+    }
+    return next;
   }
   function applyTermNames(root) {
     const selector = '.question-body label, .question-body select option, .question-body li, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .order-slot, .question-body .drag-choice, .question-body .drop-zone';
@@ -19378,7 +19420,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .replace(/^(.+?)\s*\(\s*\1\s*\(([^()]*)\)\s*\)$/i, '$1 ($2)')
       .replace(/^(.+?)\s*\(\s*\1\s*\)$/i, '$1')
       .replace(/\s*\(([^()]*)\)\s*\(\1\)/gi, ' ($1)')
-      .replace(/\s*[）)]\s*$/g, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   }
@@ -19423,14 +19464,67 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return prefix + en + '（' + zh + '）' + punctuation;
   }
 
+  function cleanupDisplayChoiceText(text) {
+    let next = clean(text)
+      .replace(/([）)])\s*[）)]+$/g, '$1')
+      .replace(/（\s*）/g, '')
+      .replace(/\(\s*\)/g, '')
+      .trim();
+    const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
+    const body = prefix ? next.slice(prefix.length).trim() : next;
+    const knownRepeats = [
+      ['Azure AI Vision', '電腦視覺'],
+      ['Azure AI Language', '語言'],
+      ['Azure AI Speech', '語音'],
+      ['Azure AI Document Intelligence', '文件智慧'],
+      ['Azure Bot Service', 'Azure 機器人服務'],
+      ['Microsoft Bot Framework', 'Microsoft 機器人架構'],
+      ['Power Virtual Agents', 'Power 虛擬代理程式'],
+      ['Azure Machine Learning', 'Azure Machine Learning']
+    ];
+    for (const [term, fallbackZh] of knownRepeats) {
+      const hits = body.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || [];
+      if (hits.length > 1) {
+        const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）/)?.[1] || fallbackZh;
+        return prefix + term + (zh && /[\u4e00-\u9fff]/.test(zh) ? '（' + zh + '）' : '');
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      const cleaned = next
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*(?:\(\s*\1\s*)+/gi, '$1 (')
+        .replace(/\b(Azure AI Vision)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Language)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Speech)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Document Intelligence)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*\)/gi, '$1')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*（\s*\1\s*）/gi, '$1')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*（([^（）()]+)）\s*\)/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*（\s*\1\s*\(([^（）()]+)\)\s*）/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*\(([^（）()]+)\)\s*\)/gi, '$1（$2）')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+      if (cleaned === next) break;
+      next = cleaned;
+    }
+    return next;
+  }
+
+  function isCleanEnglishFirst(text) {
+    const body = clean(text).replace(/^((?:[A-Z]|\d+)\.\s*)/, '');
+    return /^[A-Za-z][A-Za-z0-9+\- /.]+（[^（）()]*[\u4e00-\u9fff][^（）()]*）$/.test(body);
+  }
+
   function choiceEnglishOnly(value) {
     const original = clean(value);
+    const cleanedOriginal = cleanupDisplayChoiceText(original);
+    if (isCleanEnglishFirst(cleanedOriginal)) return cleanedOriginal;
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
     const { prefix, body } = splitChoice(original);
     if (!body || body === '請選擇' || body === '是' || body === '否') return prefix + body;
     const serviceOnly = serviceEnglishOnly(body);
     if (serviceOnly) return formatEnglishFirst(prefix, body, serviceOnly);
-    const normalized = normalizeExisting(body);
+    const normalized = cleanupDisplayChoiceText(normalizeExisting(body));
+    if (isCleanEnglishFirst(prefix + normalized)) return prefix + normalized;
     const match = normalized.match(/[（(]\s*([^（）()]*[A-Za-z][^（）()]*)\s*[）)]/);
     if (!match) {
       if (!chinese.test(normalized)) {
@@ -19451,6 +19545,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function appendEnglishName(value) {
     const original = clean(value);
+    const cleanedOriginal = cleanupDisplayChoiceText(original);
+    if (isCleanEnglishFirst(cleanedOriginal)) return cleanedOriginal;
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
     const choiceOnly = choiceEnglishOnly(original);
     if (choiceOnly) return choiceOnly;
@@ -19485,11 +19581,48 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function cleanupDisplayChoiceText(text) {
-    return clean(text)
-      .replace(/\s*[）)]\s*(?=$)/g, '')
+    let next = clean(text)
+      .replace(/([）)])\s*[）)]+$/g, '$1')
       .replace(/（\s*）/g, '')
       .replace(/\(\s*\)/g, '')
       .trim();
+    const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
+    const body = prefix ? next.slice(prefix.length).trim() : next;
+    const knownRepeats = [
+      ['Azure AI Vision', '電腦視覺'],
+      ['Azure AI Language', '語言'],
+      ['Azure AI Speech', '語音'],
+      ['Azure AI Document Intelligence', '文件智慧'],
+      ['Azure Bot Service', 'Azure 機器人服務'],
+      ['Microsoft Bot Framework', 'Microsoft 機器人架構'],
+      ['Power Virtual Agents', 'Power 虛擬代理程式'],
+      ['Azure Machine Learning', 'Azure Machine Learning']
+    ];
+    for (const [term, fallbackZh] of knownRepeats) {
+      const hits = body.match(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) || [];
+      if (hits.length > 1) {
+        const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）/)?.[1] || fallbackZh;
+        return prefix + term + (zh && /[\u4e00-\u9fff]/.test(zh) ? '（' + zh + '）' : '');
+      }
+    }
+    for (let i = 0; i < 4; i++) {
+      const cleaned = next
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*(?:\(\s*\1\s*)+/gi, '$1 (')
+        .replace(/\b(Azure AI Vision)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Language)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Speech)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b(Azure AI Document Intelligence)\s*\([^（）()]*（([^（）()]+)）?\)?/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*\)/gi, '$1')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*（\s*\1\s*）/gi, '$1')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*（([^（）()]+)）\s*\)/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*（\s*\1\s*\(([^（）()]+)\)\s*）/gi, '$1（$2）')
+        .replace(/\b([A-Za-z][A-Za-z0-9+\- ]{1,80})\s*\(\s*\1\s*\(([^（）()]+)\)\s*\)/gi, '$1（$2）')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+      if (cleaned === next) break;
+      next = cleaned;
+    }
+    return next;
   }
 
   function applyEnglishNames(root = document) {
@@ -20489,6 +20622,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return /[A-Za-z]/.test(englishOnly) ? englishOnly : '';
   }
 
+  function isTerminologySpeech(value) {
+    const text = clean(value);
+    if (!text) return false;
+    return /\b(Azure|Microsoft|OpenAI|GitHub|Copilot|QnA|LUIS|CLU|OCR|NLP|GPT|DALL[- ]?E|Bot Framework|Bot Service|Power Virtual Agents|Custom Vision|Computer Vision|Document Intelligence|Form Recognizer|Translator|Speech|Language Service|Azure AI|Azure Machine Learning|Kubernetes|AKS|ACI)\b/i.test(text);
+  }
+
   function optionTextWithoutSpeech(node) {
     const clone = node.cloneNode(true);
     clone.querySelectorAll?.('.choice-speak, .choice-speak-text').forEach(el => el.remove());
@@ -20499,7 +20638,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     root.querySelectorAll('.choice-speak, .choice-speak-text').forEach(el => el.remove());
     root.querySelectorAll('.question-body label, .question-body .match-token, .question-body .order-token, .question-body .yn-options button, .question-body .drag-choice').forEach(item => {
       const english = extractEnglish(optionTextWithoutSpeech(item));
-      if (english) item.dataset.speak = english;
+      if (english && isTerminologySpeech(english)) item.dataset.speak = english;
+      else delete item.dataset.speak;
     });
     root.querySelectorAll('.question-body select').forEach(select => {
       if (select.dataset.choiceSpeechReady === 'true') return;
@@ -20507,7 +20647,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       select.addEventListener('change', () => {
         const option = select.options[select.selectedIndex];
         const english = extractEnglish(option?.textContent || '');
-        speak(english);
+        if (isTerminologySpeech(english)) speak(english);
       });
     });
   }
