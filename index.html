@@ -88,9 +88,6 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 body.review-mode .answer-content { display: block; }
 .answer-content { display: none; margin-top: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
 .answer-content.show { display: block; }
-.choice-speak { margin-left: 8px; min-height: 28px; padding: 4px 9px; border-radius: 999px; border: 1px solid #b8ccf7; background: #fffdf0; color: #172554; font-weight: 800; cursor: pointer; }
-.choice-speak-text { margin-left: 4px; color: #475467; font-size: .92em; }
-.choice-speak-select { margin-left: 8px; vertical-align: middle; }
 .manual-answer-box {
   margin-top: 18px;
   display: grid;
@@ -18365,6 +18362,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     next = next.replace(/服務中的\s+/g, '服務中的').replace(/\s+作業/g, '作業');
     next = next.replace(/(\([^)]{2,80}\))(?:\s*\1)+/gi, '$1');
     next = next.replace(/(\([^)]*[A-Za-z][^)]*\))\s*\([^)]*[A-Za-z][^)]*\)/g, '$1');
+    next = next.replace(/\s*[）)]\s*$/g, '').trim();
     return next;
   }
   function alreadyHasParen(text, offset, match) { return /^\s*[（(][^）)]*[A-Za-z\u4e00-\u9fff][^）)]*[）)]/.test(text.slice(offset + match.length, offset + match.length + 80)); }
@@ -18389,8 +18387,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return exact.replace(termPattern, (match, offset, fullText) => alreadyHasParen(fullText, offset, match) ? match : match + ' (' + termMap.get(match) + ')');
   }
   function formatEnglishFirst(prefix, chineseText, english, punctuation = '') {
-    const zh = stripAnyParentheses(cleanText(chineseText)).replace(/[。；;:：,，]+$/g, '').trim();
-    const en = cleanText(english);
+    const zh = stripAnyParentheses(cleanText(chineseText)).replace(/[）)]/g, '').replace(/[。；;:：,，]+$/g, '').trim();
+    const en = cleanText(english).replace(/^[（(]+|[）)]+$/g, '').trim();
     if (!en) return prefix + cleanText(chineseText);
     if (!/[\u4e00-\u9fff]/.test(zh)) return prefix + en + punctuation;
     return prefix + en + '（' + zh + '）' + punctuation;
@@ -18430,6 +18428,13 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     else if (after && !/[\u4e00-\u9fff]/.test(after)) english += ' ' + after;
     return formatEnglishFirst(prefix, before || body, english);
   }
+  function cleanupDisplayChoiceText(text) {
+    return cleanText(text)
+      .replace(/\s*[）)]\s*(?=$)/g, '')
+      .replace(/（\s*）/g, '')
+      .replace(/\(\s*\)/g, '')
+      .trim();
+  }
   function applyTermNames(root) {
     const selector = '.question-body label, .question-body select option, .question-body li, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .order-slot, .question-body .drag-choice, .question-body .drop-zone';
     (root || document).querySelectorAll(selector).forEach(element => {
@@ -18437,7 +18442,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       if (element.matches('li') && element.querySelector('input, select, textarea, button, label')) return;
       const before = element.textContent || '';
       const after = normalizeChoiceEnglishOnly(appendTerms(before));
-      if (after && after !== before) element.textContent = after;
+      const cleaned = cleanupDisplayChoiceText(after);
+      if (cleaned && cleaned !== before) element.textContent = cleaned;
     });
     dedupeSelectOptions(root || document);
   }
@@ -18446,7 +18452,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && cleanText(option.textContent) === '請選擇') return;
-        const text = normalizeChoiceEnglishOnly((window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value));
+        const text = cleanupDisplayChoiceText(normalizeChoiceEnglishOnly((window.ai900AppendEnglishName || appendTerms)(option.textContent || option.value)));
         const key = optionDedupeKey(text);
         if (!key) return;
         if (seen.has(key)) {
@@ -19372,6 +19378,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .replace(/^(.+?)\s*\(\s*\1\s*\(([^()]*)\)\s*\)$/i, '$1 ($2)')
       .replace(/^(.+?)\s*\(\s*\1\s*\)$/i, '$1')
       .replace(/\s*\(([^()]*)\)\s*\(\1\)/gi, ' ($1)')
+      .replace(/\s*[）)]\s*$/g, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   }
@@ -19409,8 +19416,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function formatEnglishFirst(prefix, chineseText, english, punctuation = '') {
-    const zh = stripEnglishParens(clean(chineseText)).replace(/\s*[（(][^）)]*[）)]/g, '').replace(/[。；;:：,，]+$/g, '').trim();
-    const en = clean(english);
+    const zh = stripEnglishParens(clean(chineseText)).replace(/\s*[（(][^）)]*[）)]/g, '').replace(/[）)]/g, '').replace(/[。；;:：,，]+$/g, '').trim();
+    const en = clean(english).replace(/^[（(]+|[）)]+$/g, '').trim();
     if (!en) return prefix + clean(chineseText);
     if (!chinese.test(zh)) return prefix + en + punctuation;
     return prefix + en + '（' + zh + '）' + punctuation;
@@ -19477,6 +19484,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .toLowerCase();
   }
 
+  function cleanupDisplayChoiceText(text) {
+    return clean(text)
+      .replace(/\s*[）)]\s*(?=$)/g, '')
+      .replace(/（\s*）/g, '')
+      .replace(/\(\s*\)/g, '')
+      .trim();
+  }
+
   function applyEnglishNames(root = document) {
     const selector = [
       '.question-body select option',
@@ -19489,7 +19504,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
     root.querySelectorAll(selector).forEach(element => {
       if (element.closest('.answer-content')) return;
-      const next = appendEnglishName(element.textContent);
+      const next = cleanupDisplayChoiceText(appendEnglishName(element.textContent));
       if (next && next !== clean(element.textContent)) {
         element.textContent = next;
       }
@@ -19499,7 +19514,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const seen = new Map();
       [...select.options].forEach(option => {
         if (clean(option.textContent) === '請選擇') return;
-        const next = appendEnglishName(option.textContent || option.value);
+        const next = cleanupDisplayChoiceText(appendEnglishName(option.textContent || option.value));
         const key = optionKey(next);
         if (!key) return;
         if (seen.has(key)) {
@@ -20474,16 +20489,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return /[A-Za-z]/.test(englishOnly) ? englishOnly : '';
   }
 
-  function addSpeechButton(target, english) {
-    if (!target || !english || target.nextElementSibling?.classList?.contains('choice-speak')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'choice-speak';
-    button.dataset.speak = english;
-    button.textContent = '朗讀';
-    target.insertAdjacentElement('afterend', button);
-  }
-
   function optionTextWithoutSpeech(node) {
     const clone = node.cloneNode(true);
     clone.querySelectorAll?.('.choice-speak, .choice-speak-text').forEach(el => el.remove());
@@ -20491,22 +20496,19 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function enhanceChoiceSpeech(root = document) {
-    root.querySelectorAll('.question-body label, .question-body .match-token, .question-body .order-token, .question-body .yn-options button').forEach(item => {
-      addSpeechButton(item, extractEnglish(optionTextWithoutSpeech(item)));
+    root.querySelectorAll('.choice-speak, .choice-speak-text').forEach(el => el.remove());
+    root.querySelectorAll('.question-body label, .question-body .match-token, .question-body .order-token, .question-body .yn-options button, .question-body .drag-choice').forEach(item => {
+      const english = extractEnglish(optionTextWithoutSpeech(item));
+      if (english) item.dataset.speak = english;
     });
     root.querySelectorAll('.question-body select').forEach(select => {
       if (select.dataset.choiceSpeechReady === 'true') return;
       select.dataset.choiceSpeechReady = 'true';
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'choice-speak choice-speak-select';
-      button.textContent = '朗讀';
-      button.addEventListener('click', () => {
+      select.addEventListener('change', () => {
         const option = select.options[select.selectedIndex];
         const english = extractEnglish(option?.textContent || '');
         speak(english);
       });
-      select.insertAdjacentElement('afterend', button);
     });
   }
 
@@ -20532,8 +20534,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   });
 
   document.addEventListener('click', event => {
-    const button = event.target.closest?.('.choice-speak[data-speak]');
-    if (button) speak(button.dataset.speak);
+    const choice = event.target.closest?.('.question-body label[data-speak], .question-body .match-token[data-speak], .question-body .order-token[data-speak], .question-body .yn-options button[data-speak], .question-body .drag-choice[data-speak]');
+    if (choice) speak(choice.dataset.speak);
   });
   window.ai900EnhanceChoiceSpeech = enhanceChoiceSpeech;
   document.addEventListener('DOMContentLoaded', () => enhanceChoiceSpeech(document));
