@@ -18441,6 +18441,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .trim();
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
+    const genericRepeat = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,90}?)\s*(?:\(\s*\1\s*){2,}/i);
+    if (genericRepeat) {
+      const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）?/)?.[1] || '';
+      if (zh) return prefix + cleanText(genericRepeat[1]) + '（' + zh + '）';
+    }
     const knownRepeats = [
       ['Azure AI Vision', '電腦視覺'],
       ['Azure AI Language', '語言'],
@@ -19472,6 +19477,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .trim();
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
+    const genericRepeat = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,90}?)\s*(?:\(\s*\1\s*){2,}/i);
+    if (genericRepeat) {
+      const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）?/)?.[1] || '';
+      if (zh) return prefix + clean(genericRepeat[1]) + '（' + zh + '）';
+    }
     const knownRepeats = [
       ['Azure AI Vision', '電腦視覺'],
       ['Azure AI Language', '語言'],
@@ -19588,6 +19598,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .trim();
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
+    const genericRepeat = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,90}?)\s*(?:\(\s*\1\s*){2,}/i);
+    if (genericRepeat) {
+      const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）?/)?.[1] || '';
+      if (zh) return prefix + clean(genericRepeat[1]) + '（' + zh + '）';
+    }
     const knownRepeats = [
       ['Azure AI Vision', '電腦視覺'],
       ['Azure AI Language', '語言'],
