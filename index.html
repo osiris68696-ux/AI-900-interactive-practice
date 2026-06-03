@@ -18441,6 +18441,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .trim();
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
+    const repeatedEnglishWithChinese = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,120}?)\s*(?:[（(]\s*\1\s*)+[\s\S]*?[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]?\s*$/i);
+    if (repeatedEnglishWithChinese) return prefix + cleanText(repeatedEnglishWithChinese[1]) + '（' + cleanText(repeatedEnglishWithChinese[2]) + '）';
     const genericRepeat = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,90}?)\s*(?:\(\s*\1\s*){2,}/i);
     if (genericRepeat) {
       const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）?/)?.[1] || '';
@@ -18493,6 +18495,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       if (cleaned && cleaned !== before) element.textContent = cleaned;
     });
     dedupeSelectOptions(root || document);
+    cleanupRepeatedTermLabels(root || document);
+  }
+  function cleanupRepeatedTermLabels(root) {
+    const selector = '.question-body label, .question-body select option, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .drag-choice, .question-body .drop-zone';
+    (root || document).querySelectorAll(selector).forEach(element => {
+      if (element.closest('.answer-content')) return;
+      const before = element.textContent || '';
+      const after = cleanupDisplayChoiceText(before);
+      if (after && after !== cleanText(before)) element.textContent = after;
+    });
   }
   function dedupeSelectOptions(root) {
     (root || document).querySelectorAll('.question-body select').forEach(select => {
@@ -19477,6 +19489,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .trim();
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
+    const repeatedEnglishWithChinese = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,120}?)\s*(?:[（(]\s*\1\s*)+[\s\S]*?[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]?\s*$/i);
+    if (repeatedEnglishWithChinese) return prefix + clean(repeatedEnglishWithChinese[1]) + '（' + clean(repeatedEnglishWithChinese[2]) + '）';
     const genericRepeat = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,90}?)\s*(?:\(\s*\1\s*){2,}/i);
     if (genericRepeat) {
       const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）?/)?.[1] || '';
@@ -19598,6 +19612,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .trim();
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
+    const repeatedEnglishWithChinese = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,120}?)\s*(?:[（(]\s*\1\s*)+[\s\S]*?[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]?\s*$/i);
+    if (repeatedEnglishWithChinese) return prefix + clean(repeatedEnglishWithChinese[1]) + '（' + clean(repeatedEnglishWithChinese[2]) + '）';
     const genericRepeat = body.match(/^([A-Za-z][A-Za-z0-9+\- /]{2,90}?)\s*(?:\(\s*\1\s*){2,}/i);
     if (genericRepeat) {
       const zh = body.match(/（([^）]*[\u4e00-\u9fff][^）]*)）?/)?.[1] || '';
@@ -19672,6 +19688,23 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         seen.set(key, option);
         option.textContent = next;
       });
+    });
+    cleanupRepeatedChoiceLabels(root);
+  }
+
+  function cleanupRepeatedChoiceLabels(root = document) {
+    const selector = [
+      '.question-body label',
+      '.question-body select option',
+      '.question-body .match-token',
+      '.question-body .order-token',
+      '.question-body .drag-choice'
+    ].join(',');
+    root.querySelectorAll(selector).forEach(element => {
+      if (element.closest('.answer-content')) return;
+      const before = element.textContent || '';
+      const after = cleanupDisplayChoiceText(before);
+      if (after && after !== clean(before)) element.textContent = after;
     });
   }
 
