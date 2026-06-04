@@ -18395,7 +18395,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
   function isCleanEnglishFirst(text) {
     const body = cleanText(text).replace(/^((?:[A-Z]|\d+)\.\s*)/, '');
-    return /^[A-Za-z][A-Za-z0-9+\- /.]+（[^（）()]*[\u4e00-\u9fff][^（）()]*）$/.test(body);
+    return /^Azure\b[A-Za-z0-9+\- /.]*（[^（）()]*[\u4e00-\u9fff][^（）()]*）$/i.test(body);
   }
   function preferChineseUnlessAzure(text) {
     const value = cleanText(text);
@@ -18415,7 +18415,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const body = prefix ? normalized.slice(prefix.length).trim() : normalized;
     if (!body || /[\u4e00-\u9fff]/.test(body) || /[（(][^）)]*[）)]/.test(body)) return normalized;
     const zh = englishChoiceDisplayMap.get(cleanText(body).toLowerCase());
-    return zh ? prefix + body + '（' + zh + '）' : normalized;
+    if (!zh) return normalized;
+    return /^Azure\b/i.test(body) ? prefix + body + '（' + zh + '）' : prefix + zh;
   }
   function normalizeServiceEnglishOnly(text) {
     let next = cleanupDisplayChoiceText(normalizeOptionText(text));
@@ -19548,7 +19549,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function isCleanEnglishFirst(text) {
     const body = clean(text).replace(/^((?:[A-Z]|\d+)\.\s*)/, '');
-    return /^[A-Za-z][A-Za-z0-9+\- /.]+（[^（）()]*[\u4e00-\u9fff][^（）()]*）$/.test(body);
+    return /^Azure\b[A-Za-z0-9+\- /.]*（[^（）()]*[\u4e00-\u9fff][^（）()]*）$/i.test(body);
   }
   function preferChineseUnlessAzure(text) {
     const value = clean(text);
@@ -19578,7 +19579,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (!match) {
       if (!chinese.test(normalized)) {
         const zh = reverseGlossary.get(clean(normalized).toLowerCase());
-        if (zh) return prefix + normalized + '（' + zh + '）';
+        if (zh) return /^Azure\b/i.test(normalized) ? prefix + normalized + '（' + zh + '）' : prefix + zh;
       }
       return '';
     }
@@ -19611,11 +19612,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (serviceOnly) return formatEnglishFirst(prefix, base, serviceOnly, punctuation);
     if (/^Azure\s+AI\b/i.test(clean(english || '')) && chinese.test(base)) return formatEnglishFirst(prefix, base, clean(english), punctuation);
     if (/^Azure\s+AI\b/i.test(base) && chinese.test(base) && english) return formatEnglishFirst(prefix, base, clean(english), punctuation);
-    if (hasExistingAnnotation(bodyNormalized)) return prefix + bodyNormalized;
+    if (hasExistingAnnotation(bodyNormalized)) return cleanupDisplayChoiceText(prefix + bodyNormalized);
     if (english) {
       const cleanEnglish = clean(english);
       if (cleanEnglish.toLowerCase() === base.toLowerCase()) return prefix + bodyNormalized;
-      return formatEnglishFirst(prefix, base, cleanEnglish, punctuation);
+      if (/^Azure\b/i.test(cleanEnglish) || /^Azure\b/i.test(base)) return formatEnglishFirst(prefix, base, cleanEnglish, punctuation);
+      return prefix + base + punctuation;
     }
 
     if (!chinese.test(bodyNormalized)) return prefix + bodyNormalized;
@@ -20806,6 +20808,169 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   installStableStartGuard();
   document.addEventListener('DOMContentLoaded', installStableStartGuard);
   window.addEventListener('load', installStableStartGuard);
+})();
+</script>
+<script id="ai900-final-choice-display-normalizer">
+(function () {
+  const clean = value => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  const hasChinese = value => /[\u4e00-\u9fff]/.test(value || '');
+  const splitPrefix = value => {
+    const text = clean(value);
+    const match = text.match(/^((?:[A-Z]|\d+)\.\s*)(.+)$/i);
+    return match ? { prefix: match[1], body: clean(match[2]) } : { prefix: '', body: text };
+  };
+  const stripParens = value => clean(value)
+    .replace(/\s*[（(][^（）()]*[A-Za-z][^（）()]*[）)]/g, '')
+    .replace(/\s*[（(]\s*[）)]/g, '')
+    .replace(/[）)]+$/g, '')
+    .trim();
+  const azureMap = new Map([
+    ['Azure AI 視覺', 'Azure AI Vision'],
+    ['Azure AI 視覺服務', 'Azure AI Vision'],
+    ['Azure AI 電腦視覺', 'Azure AI Vision'],
+    ['Azure AI 語言', 'Azure AI Language'],
+    ['Azure AI 語言服務', 'Azure AI Language'],
+    ['Azure AI 語音', 'Azure AI Speech'],
+    ['Azure AI 語音服務', 'Azure AI Speech'],
+    ['Azure AI 文件智慧', 'Azure AI Document Intelligence'],
+    ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'],
+    ['Azure AI 翻譯', 'Azure AI Translator'],
+    ['Azure AI 翻譯工具', 'Azure AI Translator'],
+    ['Azure AI 搜尋', 'Azure AI Search'],
+    ['Azure AI 搜尋服務', 'Azure AI Search'],
+    ['Azure AI 自訂視覺', 'Azure AI Custom Vision'],
+    ['Azure AI 沉浸式閱讀程式', 'Azure AI Immersive Reader'],
+    ['Azure OpenAI', 'Azure OpenAI'],
+    ['Azure OpenAI 服務', 'Azure OpenAI Service'],
+    ['Azure Bot Service', 'Azure Bot Service'],
+    ['Azure 機器人服務', 'Azure Bot Service'],
+    ['Azure Machine Learning', 'Azure Machine Learning'],
+    ['Azure Kubernetes Service', 'Azure Kubernetes Service'],
+    ['Azure Kubernetes Service (AKS)', 'Azure Kubernetes Service'],
+    ['Azure 認知搜尋', 'Azure Cognitive Search'],
+    ['Azure 搜尋', 'Azure AI Search']
+  ]);
+  const reverse = new Map([
+    ['Language Understanding', '語言理解'],
+    ['Custom Vision', '自訂視覺'],
+    ['Computer Vision', '電腦視覺'],
+    ['Text Analytics', '文字分析'],
+    ['Translation', '翻譯'],
+    ['Translator', '翻譯工具'],
+    ['Speech', '語音'],
+    ['Speech Service', '語音服務'],
+    ['Language Service', '語言服務'],
+    ['Object Detection', '物件偵測'],
+    ['Image Analysis', '影像分析'],
+    ['Image Classification', '影像分類'],
+    ['Face', '臉部'],
+    ['OCR', 'OCR'],
+    ['Optical Character Recognition', 'OCR'],
+    ['Classification', '分類'],
+    ['Binary Classification', '二元分類'],
+    ['Multiclass Classification', '多類別分類'],
+    ['Regression', '迴歸'],
+    ['Clustering', '叢集'],
+    ['Anomaly Detection', '異常偵測'],
+    ['Model Training', '模型定型'],
+    ['Model Evaluation', '模型評估'],
+    ['Feature Engineering', '特徵工程'],
+    ['Feature Engineering and Selection', '特徵工程和選取'],
+    ['Data Ingestion and Preparation', '資料擷取和準備'],
+    ['Dataset', '資料集'],
+    ['Module', '模組'],
+    ['Label', '標籤'],
+    ['Feature', '特徵'],
+    ['Knowledge Mining', '知識採礦'],
+    ['Sentiment Analysis', '情感分析'],
+    ['Entity Recognition', '實體辨識'],
+    ['Key Phrase Extraction', '關鍵片語擷取'],
+    ['Language Detection', '語言偵測'],
+    ['Natural Language Processing', '自然語言處理'],
+    ['Create Multi-turn Question', '建立多回合問題'],
+    ['Chit-chat', '閒聊'],
+    ['Increase Response Confidence Threshold', '提高回應信賴等級閾值'],
+    ['Enable Active Learning', '啟用主動學習']
+  ].map(([en, zh]) => [en.toLowerCase(), zh]));
+
+  function azureDisplay(prefix, body) {
+    const bodyClean = clean(body).replace(/[。；;:：,，]+$/g, '');
+    const bare = stripParens(bodyClean);
+    const direct = azureMap.get(bodyClean) || azureMap.get(bare);
+    if (direct) return prefix + direct + (hasChinese(bare) ? '（' + bare + '）' : '');
+    const englishFirst = bodyClean.match(/^(Azure[A-Za-z0-9+\- /.]*?)\s*[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]$/i);
+    if (englishFirst) return prefix + clean(englishFirst[1]) + '（' + clean(englishFirst[2]) + '）';
+    return '';
+  }
+
+  function normalizeChoiceText(value) {
+    const original = clean(value);
+    if (!original || original === '請選擇' || original === '是' || original === '否') return original;
+    const { prefix, body } = splitPrefix(original);
+    const azure = azureDisplay(prefix, body);
+    if (azure) return azure;
+    if (/^Azure\b/i.test(body)) return original;
+    const englishFirst = body.match(/^[A-Za-z][A-Za-z0-9+\- /.]*[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]$/);
+    if (englishFirst) return prefix + clean(englishFirst[1]);
+    const withoutEnglish = stripParens(body);
+    if (hasChinese(withoutEnglish)) return prefix + withoutEnglish;
+    const zh = reverse.get(body.toLowerCase());
+    return zh ? prefix + zh : original;
+  }
+
+  function optionKey(value) {
+    return normalizeChoiceText(value).replace(/^((?:[A-Z]|\d+)\.\s*)/i, '').replace(/\s*[（(][^）)]*[）)]/g, '').toLowerCase();
+  }
+
+  function normalizeChoices(root) {
+    const base = root || document;
+    const selector = '.question-body label, .question-body select option, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .drag-choice';
+    base.querySelectorAll(selector).forEach(element => {
+      if (element.closest('.answer-content')) return;
+      const before = element.textContent || '';
+      const after = normalizeChoiceText(before);
+      if (after && after !== clean(before)) element.textContent = after;
+    });
+    base.querySelectorAll('.question-body select').forEach(select => {
+      const seen = new Map();
+      [...select.options].forEach(option => {
+        if (!option.value && clean(option.textContent) === '請選擇') return;
+        const text = normalizeChoiceText(option.textContent || option.value);
+        const key = optionKey(text);
+        if (!key) return;
+        if (seen.has(key)) option.remove();
+        else {
+          seen.set(key, option);
+          option.textContent = text;
+        }
+      });
+    });
+  }
+
+  const previousSetupCards = window.setupCards;
+  if (typeof previousSetupCards === 'function') {
+    window.setupCards = function finalChoiceDisplaySetup() {
+      const result = previousSetupCards.apply(this, arguments);
+      normalizeChoices(document);
+      setTimeout(() => normalizeChoices(document), 0);
+      return result;
+    };
+  }
+  ['startExam', 'showQuestion'].forEach(name => {
+    const previous = window[name];
+    if (typeof previous !== 'function') return;
+    window[name] = function finalChoiceDisplayAfterAction() {
+      const result = previous.apply(this, arguments);
+      normalizeChoices(document);
+      setTimeout(() => normalizeChoices(document), 0);
+      return result;
+    };
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    normalizeChoices(document);
+    setTimeout(() => normalizeChoices(document), 0);
+  });
+  window.ai900NormalizeChoiceDisplay = normalizeChoices;
 })();
 </script>
 </body>
