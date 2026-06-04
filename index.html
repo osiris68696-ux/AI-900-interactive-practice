@@ -18319,7 +18319,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['QnA Maker', 'QnA Maker']
   ]);
   const termMappings = [
-    ['Azure AI 電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['Azure AI 電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['臉部服務中的偵測作業', 'Face Detect operation'], ['臉部服務中的驗證作業', 'Face Verify operation'], ['Azure 搜尋功能中的 AI 擴充', 'AI enrichment in Azure Search'], ['電腦視覺影像分析功能', 'Azure AI Vision Image Analysis'], ['自訂視覺影像分類功能', 'Custom Vision Image Classification'], ['語言理解功能', 'Language Understanding'], ['Azure OpenAI 服務', 'Azure OpenAI Service'], ['Azure 認知搜尋', 'Azure Cognitive Search / Azure AI Search'], ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 文件智慧', 'Azure AI Document Intelligence'], ['文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 翻譯工具', 'Azure AI Translator'], ['Azure AI 語音服務', 'Azure AI Speech'], ['Azure AI 語音', 'Azure AI Speech'], ['Azure AI 語言服務', 'Azure AI Language'], ['Azure AI 語言', 'Azure AI Language'], ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'], ['Azure AI 自訂視覺物件偵測', 'Custom Vision Object Detection'], ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'], ['Azure AI 自訂視覺分類', 'Custom Vision Classification'], ['Azure AI 視覺服務', 'Azure AI Vision'], ['Azure AI 視覺', 'Azure AI Vision'], ['Azure AI 電腦視覺', 'Azure AI Vision'], ['Azure AI 自訂視覺', 'Custom Vision'], ['電腦視覺應用程式', 'Azure AI Vision application'], ['情感分析解決方案', 'Sentiment Analysis solution'], ['機器學習模型', 'machine learning model'], ['聊天機器人', 'Chatbot'], ['Power Virtual Agents', 'Power 虛擬代理程式'], ['Microsoft Bot Framework', 'Microsoft 機器人架構'], ['Azure Bot Service', 'Azure 機器人服務'], ['公平性', 'Fairness'], ['可靠性和安全性', 'Reliability and Safety'], ['可靠性與安全性', 'Reliability and Safety'], ['隱私權和安全性', 'Privacy and Security'], ['權責性', 'Accountability'], ['包容性', 'Inclusiveness'], ['透明度', 'Transparency'], ['臉部辨識', 'Face recognition'], ['臉部', 'Face'], ['光學字元辨識', 'Optical Character Recognition'], ['語音辨識', 'Speech Recognition'], ['語音合成', 'Speech Synthesis'], ['文字分析', 'Text Analytics'], ['翻譯', 'Translation'], ['物件偵測', 'Object Detection'], ['影像分析', 'Image Analysis'], ['影像分類', 'Image Classification'], ['文件智慧', 'Azure AI Document Intelligence'], ['電腦視覺', 'Azure AI Vision'], ['自訂視覺', 'Custom Vision'], ['OCR', 'Optical Character Recognition']
+    ['Azure AI 電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['Azure AI 電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'], ['電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'], ['臉部服務中的偵測作業', 'Face Detect operation'], ['臉部服務中的驗證作業', 'Face Verify operation'], ['Azure 搜尋功能中的 AI 擴充', 'AI enrichment in Azure Search'], ['電腦視覺影像分析功能', 'Azure AI Vision Image Analysis'], ['自訂視覺影像分類功能', 'Custom Vision Image Classification'], ['語言理解功能', 'Language Understanding'], ['Azure OpenAI 服務', 'Azure OpenAI Service'], ['Azure 認知搜尋', 'Azure AI Search'], ['Azure AI 文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 文件智慧', 'Azure AI Document Intelligence'], ['文件智慧服務', 'Azure AI Document Intelligence'], ['Azure AI 翻譯工具', 'Azure AI Translator'], ['Azure AI 語音服務', 'Azure AI Speech'], ['Azure AI 語音', 'Azure AI Speech'], ['Azure AI 語言服務', 'Azure AI Language'], ['Azure AI 語言', 'Azure AI Language'], ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'], ['Azure AI 自訂視覺物件偵測', 'Custom Vision Object Detection'], ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'], ['Azure AI 自訂視覺分類', 'Custom Vision Classification'], ['Azure AI 視覺服務', 'Azure AI Vision'], ['Azure AI 視覺', 'Azure AI Vision'], ['Azure AI 電腦視覺', 'Azure AI Vision'], ['Azure AI 自訂視覺', 'Custom Vision'], ['電腦視覺應用程式', 'Azure AI Vision application'], ['情感分析解決方案', 'Sentiment Analysis solution'], ['機器學習模型', 'machine learning model'], ['聊天機器人', 'Chatbot'], ['Power Virtual Agents', 'Power 虛擬代理程式'], ['Microsoft Bot Framework', 'Microsoft 機器人架構'], ['Azure Bot Service', 'Azure 機器人服務'], ['公平性', 'Fairness'], ['可靠性和安全性', 'Reliability and Safety'], ['可靠性與安全性', 'Reliability and Safety'], ['隱私權和安全性', 'Privacy and Security'], ['權責性', 'Accountability'], ['包容性', 'Inclusiveness'], ['透明度', 'Transparency'], ['臉部辨識', 'Face recognition'], ['臉部', 'Face'], ['光學字元辨識', 'Optical Character Recognition'], ['語音辨識', 'Speech Recognition'], ['語音合成', 'Speech Synthesis'], ['文字分析', 'Text Analytics'], ['翻譯', 'Translation'], ['物件偵測', 'Object Detection'], ['影像分析', 'Image Analysis'], ['影像分類', 'Image Classification'], ['文件智慧', 'Azure AI Document Intelligence'], ['電腦視覺', 'Azure AI Vision'], ['自訂視覺', 'Custom Vision'], ['OCR', 'Optical Character Recognition']
   ].sort((a, b) => b[0].length - a[0].length);
   const termMap = new Map(termMappings);
   const exactTermMappings = [
@@ -20839,6 +20839,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Azure AI 搜尋', 'Azure AI Search'],
     ['Azure AI 搜尋服務', 'Azure AI Search'],
     ['Azure AI 自訂視覺', 'Azure AI Custom Vision'],
+    ['Azure AI 自訂視覺物件偵測', 'Azure AI Custom Vision Object Detection'],
+    ['Azure AI 自訂視覺分類', 'Azure AI Custom Vision Classification'],
     ['Azure AI 沉浸式閱讀程式', 'Azure AI Immersive Reader'],
     ['Azure OpenAI', 'Azure OpenAI'],
     ['Azure OpenAI 服務', 'Azure OpenAI Service'],
@@ -20847,8 +20849,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Azure Machine Learning', 'Azure Machine Learning'],
     ['Azure Kubernetes Service', 'Azure Kubernetes Service'],
     ['Azure Kubernetes Service (AKS)', 'Azure Kubernetes Service'],
-    ['Azure 認知搜尋', 'Azure Cognitive Search'],
+    ['Azure 認知搜尋', 'Azure AI Search'],
     ['Azure 搜尋', 'Azure AI Search']
+  ]);
+  const productNameMap = new Map([
+    ['Microsoft 機器人架構', 'Microsoft Bot Framework'],
+    ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
+    ['Power 虛擬代理程式', 'Power Virtual Agents'],
+    ['Power Virtual Agents', 'Power Virtual Agents']
   ]);
   const reverse = new Map([
     ['Language Understanding', '語言理解'],
@@ -20909,6 +20917,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const { prefix, body } = splitPrefix(original);
     const azure = azureDisplay(prefix, body);
     if (azure) return azure;
+    const productBare = stripParens(body);
+    const productEnglish = productNameMap.get(body) || productNameMap.get(productBare);
+    if (productEnglish) return prefix + productEnglish + (hasChinese(productBare) ? '（' + productBare + '）' : '');
     if (/^Azure\b/i.test(body)) return original;
     const englishFirst = body.match(/^[A-Za-z][A-Za-z0-9+\- /.]*[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]$/);
     if (englishFirst) return prefix + clean(englishFirst[1]);
@@ -20932,6 +20943,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       if (after && after !== clean(before)) element.textContent = after;
     });
     base.querySelectorAll('.question-body select').forEach(select => {
+      const nonPromptOptions = [...select.options].filter(option => option.value || clean(option.textContent) !== '請選擇');
+      const numericSelect = nonPromptOptions.length > 0 && nonPromptOptions.every(option => /^\d+$/.test(clean(option.value || option.textContent)));
+      if (numericSelect) return;
       const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && clean(option.textContent) === '請選擇') return;
