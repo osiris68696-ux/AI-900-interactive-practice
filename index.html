@@ -84,6 +84,7 @@ body.show-all-review.review-mode .question-card:not(.not-in-exam) { display: blo
 .question-body li > input[type="radio"]:focus-visible + label, .question-body li > input[type="checkbox"]:focus-visible + label { outline: 3px solid rgba(42, 163, 199, .25); outline-offset: 2px; }
 .question-body li > input[type="radio"]:checked + label, .question-body li > input[type="checkbox"]:checked + label { background: #0f6c8f; border-color: #0f6c8f; box-shadow: 0 0 0 2px rgba(15, 108, 143, .18); }
 .question-body input[type="text"], .question-body textarea, .question-body select { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-width: 100%; }
+.question-body input[readonly][disabled] { display: none !important; }
 .answer-toggle { display: none !important; }
 body.review-mode .answer-content { display: block; }
 .answer-content { display: none; margin-top: 14px; background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
@@ -18427,6 +18428,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const direct = serviceEnglishOnlyMap.get(withoutParens) || serviceEnglishOnlyMap.get(body);
     if (direct) return formatEnglishFirst(prefix, withoutParens || body, direct);
     for (const [source, english] of serviceEnglishOnlyMap) {
+      if (source === 'QnA Maker') continue;
       if (body.includes(source)) return formatEnglishFirst(prefix, source, english);
     }
     return preferChineseUnlessAzure(next);
@@ -20825,6 +20827,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     .replace(/[）)]+$/g, '')
     .trim();
   const azureMap = new Map([
+    ['Azure AI Vision', 'Azure AI Vision'],
+    ['Azure AI Language', 'Azure AI Language'],
+    ['Azure AI Speech', 'Azure AI Speech'],
+    ['Azure AI Document Intelligence', 'Azure AI Document Intelligence'],
+    ['Azure AI Search', 'Azure AI Search'],
+    ['Azure AI Custom Vision', 'Azure AI Custom Vision'],
     ['Azure AI 視覺', 'Azure AI Vision'],
     ['Azure AI 視覺服務', 'Azure AI Vision'],
     ['Azure AI 電腦視覺', 'Azure AI Vision'],
@@ -20841,9 +20849,17 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Azure AI 自訂視覺', 'Azure AI Custom Vision'],
     ['Azure AI 自訂視覺物件偵測', 'Azure AI Custom Vision Object Detection'],
     ['Azure AI 自訂視覺分類', 'Azure AI Custom Vision Classification'],
+    ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'],
+    ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'],
     ['Azure AI 沉浸式閱讀程式', 'Azure AI Immersive Reader'],
     ['Azure OpenAI', 'Azure OpenAI'],
     ['Azure OpenAI 服務', 'Azure OpenAI Service'],
+    ['Azure OpenAI Whisper', 'Azure OpenAI Whisper'],
+    ['Azure OpenAI DALL-E', 'Azure OpenAI DALL-E'],
+    ['Azure OpenAI GPT-4', 'Azure OpenAI GPT-4'],
+    ['Azure OpenAI GPT-3.5', 'Azure OpenAI GPT-3.5'],
+    ['Azure OpenAI GPT-3.5 Turbo', 'Azure OpenAI GPT-3.5 Turbo'],
+    ['Azure OpenAI Studio', 'Azure OpenAI Studio'],
     ['Azure Bot Service', 'Azure Bot Service'],
     ['Azure 機器人服務', 'Azure Bot Service'],
     ['Azure Machine Learning', 'Azure Machine Learning'],
@@ -20856,7 +20872,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Microsoft 機器人架構', 'Microsoft Bot Framework'],
     ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
     ['Power 虛擬代理程式', 'Power Virtual Agents'],
-    ['Power Virtual Agents', 'Power Virtual Agents']
+    ['Power Virtual Agents', 'Power Virtual Agents'],
+    ['分類', 'Classification'],
+    ['迴歸', 'Regression'],
+    ['回歸', 'Regression'],
+    ['叢集', 'Clustering'],
+    ['蓄集', 'Clustering']
   ]);
   const reverse = new Map([
     ['Language Understanding', '語言理解'],
@@ -20903,9 +20924,26 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function azureDisplay(prefix, body) {
     const bodyClean = clean(body).replace(/[。；;:：,，]+$/g, '');
+    const englishServiceZh = new Map([
+      ['azure ai vision', 'Azure AI 視覺'],
+      ['azure ai language', 'Azure AI 語言'],
+      ['azure ai speech', 'Azure AI 語音'],
+      ['azure ai document intelligence', 'Azure AI 文件智慧'],
+      ['azure ai search', 'Azure AI 搜尋'],
+      ['azure ai custom vision', 'Azure AI 自訂視覺']
+    ]);
+    const englishServiceMatch = bodyClean.match(/^(Azure AI [A-Za-z ]+)\s*(?:[（(]\s*[^）)]*\s*[）)])?$/i);
+    if (englishServiceMatch) {
+      const en = clean(englishServiceMatch[1]);
+      const zh = englishServiceZh.get(en.toLowerCase());
+      if (zh) return prefix + en + '（' + zh + '）';
+    }
     const bare = stripParens(bodyClean);
     const direct = azureMap.get(bodyClean) || azureMap.get(bare);
     if (direct) return prefix + direct + (hasChinese(bare) ? '（' + bare + '）' : '');
+    const embedded = [...azureMap.entries()].sort((a, b) => b[0].length - a[0].length)
+      .find(([source]) => bodyClean.includes(source));
+    if (embedded) return prefix + embedded[1] + '（' + embedded[0] + '）';
     const englishFirst = bodyClean.match(/^(Azure[A-Za-z0-9+\- /.]*?)\s*[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]$/i);
     if (englishFirst) return prefix + clean(englishFirst[1]) + '（' + clean(englishFirst[2]) + '）';
     return '';
@@ -20915,6 +20953,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const original = clean(value);
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
     const { prefix, body } = splitPrefix(original);
+    if (/^文字擷取(?:\s*[（(].*[）)])?$/i.test(body)) return prefix + '文字擷取（Text Extraction / OCR）';
     const azure = azureDisplay(prefix, body);
     if (azure) return azure;
     const productBare = stripParens(body);
