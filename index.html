@@ -18168,6 +18168,13 @@ button.shadow-card {
     <p id="feature-unlock-message" class="unlock-message"></p>
   </div>
 </div>
+<script id="ai900-original-choice-snapshot">
+window.ai900DisableLegacyChoiceNormalization = true;
+document.documentElement.dataset.ai900Build = '20260620-choice-fix-3';
+document.querySelectorAll('.question-body label, .question-body select option').forEach(function (element) {
+  element.dataset.ai900SourceChoice = element.textContent || '';
+});
+</script>
 <script>
 let questions = [];
 let currentIndex = 0;
@@ -18435,10 +18442,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (specialized) return formatEnglishFirst(prefix, withoutParens || body, specialized);
     const direct = serviceEnglishOnlyMap.get(withoutParens) || serviceEnglishOnlyMap.get(body);
     if (direct) return formatEnglishFirst(prefix, withoutParens || body, direct);
-    for (const [source, english] of serviceEnglishOnlyMap) {
-      if (source === 'QnA Maker') continue;
-      if (body.includes(source)) return formatEnglishFirst(prefix, source, english);
-    }
     return preferChineseUnlessAzure(next);
   }
   function normalizeChoiceEnglishOnly(text) {
@@ -18531,6 +18534,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     });
   }
   function dedupeSelectOptions(root) {
+    if (window.ai900DisableLegacyChoiceNormalization) return;
     (root || document).querySelectorAll('.question-body select').forEach(select => {
       const seen = new Map();
       [...select.options].forEach(option => {
@@ -19694,6 +19698,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function applyEnglishNames(root = document) {
+    if (window.ai900DisableLegacyChoiceNormalization) return;
     const selector = [
       '.question-body select option',
       '.question-body li > input[type="radio"] + label',
@@ -20825,6 +20830,10 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 <script id="ai900-final-choice-display-normalizer">
 (function () {
   const clean = value => String(value || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  const originalChoiceText = new WeakMap();
+  document.querySelectorAll('.question-body label, .question-body select option').forEach(element => {
+    originalChoiceText.set(element, element.dataset.ai900SourceChoice || element.textContent || '');
+  });
   const hasChinese = value => /[\u4e00-\u9fff]/.test(value || '');
   const splitPrefix = value => {
     const text = clean(value);
@@ -20837,6 +20846,13 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     .replace(/[）)]+$/g, '')
     .trim();
   const azureMap = new Map([
+    ['Azure AI 電腦視覺服務中的 [描述影像] 作業', 'Azure AI Vision Describe Image operation'],
+    ['Azure AI 電腦視覺服務中的 [分析影像] 作業', 'Azure AI Vision Analyze Image operation'],
+    ['Azure AI 電腦視覺服務中的描述影像作業', 'Azure AI Vision Describe Image operation'],
+    ['Azure AI 電腦視覺服務中的分析影像作業', 'Azure AI Vision Analyze Image operation'],
+    ['Azure AI 電腦視覺讀取', 'Azure AI Vision Read'],
+    ['Azure AI 電腦視覺光學字元辨識(OCR)', 'Azure AI Vision OCR'],
+    ['Azure AI 電腦視覺光學字元辨識 (OCR)', 'Azure AI Vision OCR'],
     ['Azure AI Vision', 'Azure AI Vision'],
     ['Azure AI Language', 'Azure AI Language'],
     ['Azure AI Speech', 'Azure AI Speech'],
@@ -20952,7 +20968,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const direct = azureMap.get(bodyClean) || azureMap.get(bare);
     if (direct) return prefix + direct + (hasChinese(bare) ? '（' + bare + '）' : '');
     const embedded = [...azureMap.entries()].sort((a, b) => b[0].length - a[0].length)
-      .find(([source]) => bodyClean.includes(source));
+      .find(([source]) => {
+        const index = bodyClean.indexOf(source);
+        if (index < 0) return false;
+        const remainder = clean(bodyClean.slice(0, index) + ' ' + bodyClean.slice(index + source.length))
+          .replace(/^[（(][^）)]*[）)]$/g, '')
+          .trim();
+        return !remainder;
+      });
     if (embedded) return prefix + embedded[1] + '（' + embedded[0] + '）';
     const englishFirst = bodyClean.match(/^(Azure[A-Za-z0-9+\- /.]*?)\s*[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]$/i);
     if (englishFirst) return prefix + clean(englishFirst[1]) + '（' + clean(englishFirst[2]) + '）';
@@ -20987,9 +21010,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const selector = '.question-body label, .question-body select option, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .drag-choice';
     base.querySelectorAll(selector).forEach(element => {
       if (element.closest('.answer-content')) return;
-      const before = element.textContent || '';
-      const after = normalizeChoiceText(before);
-      if (after && after !== clean(before)) element.textContent = after;
+      const before = element.dataset.ai900SourceChoice || originalChoiceText.get(element) || element.textContent || '';
+      const after = element.dataset.ai900PreserveOriginal === 'true' ? clean(before) : normalizeChoiceText(before);
+      if (after && after !== clean(element.textContent || '')) element.textContent = after;
     });
     base.querySelectorAll('.question-body select').forEach(select => {
       const nonPromptOptions = [...select.options].filter(option => option.value || clean(option.textContent) !== '請選擇');
@@ -20998,14 +21021,44 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       const seen = new Map();
       [...select.options].forEach(option => {
         if (!option.value && clean(option.textContent) === '請選擇') return;
-        const text = normalizeChoiceText(option.textContent || option.value);
+        const sourceText = option.dataset.ai900SourceChoice || originalChoiceText.get(option) || option.textContent || option.value;
+        const text = normalizeChoiceText(sourceText);
         const key = optionKey(text);
         if (!key) return;
-        if (seen.has(key)) option.remove();
-        else {
-          seen.set(key, option);
-          option.textContent = text;
+        const sourceKey = clean(sourceText).toLowerCase();
+        if (seen.has(key)) {
+          const previous = seen.get(key);
+          if (previous.sourceKey === sourceKey) option.remove();
+          else {
+            option.dataset.ai900PreserveOriginal = 'true';
+            if (clean(option.textContent) !== clean(sourceText)) option.textContent = clean(sourceText);
+            seen.set(optionKey(option.textContent), { option, sourceKey });
+          }
+        } else {
+          seen.set(key, { option, sourceKey });
+          if (clean(option.textContent) !== text) option.textContent = text;
         }
+      });
+    });
+
+    base.querySelectorAll('.question-card').forEach(card => {
+      const labels = [...card.querySelectorAll('.question-body input[type="radio"] + label, .question-body input[type="checkbox"] + label')];
+      const groups = new Map();
+      labels.forEach(label => {
+        const key = optionKey(label.textContent || '');
+        if (!key) return;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(label);
+      });
+      groups.forEach(group => {
+        if (group.length < 2) return;
+        const sourceKeys = new Set(group.map(label => clean(label.dataset.ai900SourceChoice || originalChoiceText.get(label) || label.textContent).toLowerCase()));
+        if (sourceKeys.size < 2) return;
+        group.forEach(label => {
+          const original = label.dataset.ai900SourceChoice || originalChoiceText.get(label);
+          label.dataset.ai900PreserveOriginal = 'true';
+          if (original && clean(label.textContent) !== clean(original)) label.textContent = clean(original);
+        });
       });
     });
   }
@@ -21032,6 +21085,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   document.addEventListener('DOMContentLoaded', () => {
     normalizeChoices(document);
     setTimeout(() => normalizeChoices(document), 0);
+    let queued = false;
+    const observer = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        normalizeChoices(document);
+      });
+    });
+    observer.observe(document.body, { childList: true, characterData: true, subtree: true });
   });
   window.ai900NormalizeChoiceDisplay = normalizeChoices;
 })();
