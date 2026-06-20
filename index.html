@@ -20722,6 +20722,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       if (select.dataset.choiceSpeechReady === 'true') return;
       select.dataset.choiceSpeechReady = 'true';
       select.addEventListener('change', () => {
+        if (window.ai900FinalSpeechEnabled) return;
         const option = select.options[select.selectedIndex];
         const english = extractEnglish(option?.textContent || '');
         if (isTerminologySpeech(english)) speak(english);
@@ -20751,6 +20752,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   });
 
   document.addEventListener('click', event => {
+    if (window.ai900FinalSpeechEnabled) return;
     const choice = event.target.closest?.('.question-body label[data-speak], .question-body .match-token[data-speak], .question-body .order-token[data-speak], .question-body .yn-options button[data-speak], .question-body .drag-choice[data-speak]');
     if (choice) speak(choice.dataset.speak);
   });
@@ -21024,6 +21026,209 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     setTimeout(() => normalizeChoices(document), 0);
   });
   window.ai900NormalizeChoiceDisplay = normalizeChoices;
+})();
+</script>
+<style id="ai900-matching-and-speech-fix-style">
+.question-body .matching-list .match-token {
+  display: flex;
+  width: 100%;
+  white-space: normal;
+  line-height: 1.45;
+}
+.question-body .matching-answer-area {
+  grid-template-columns: minmax(180px, 240px) minmax(180px, 1fr);
+}
+.question-body .matching-answer-area > label {
+  line-height: 1.55;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  .question-body .matching-answer-area { grid-template-columns: 1fr; }
+}
+</style>
+<script id="ai900-matching-and-speech-final-fix">
+(function () {
+  const PLACEHOLDER = '點擊左側選項後，再點擊此處放置';
+  window.ai900FinalSpeechEnabled = true;
+  const activeByCard = new WeakMap();
+  let observerQueued = false;
+
+  function clean(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function choiceParts(value) {
+    const text = clean(value);
+    const match = text.match(/^([A-Z]|\d+)\s*[.\uff0e]\s*(.*)$/i);
+    return match
+      ? { code: match[1].toUpperCase(), label: clean(match[2]), text: match[1].toUpperCase() + '. ' + clean(match[2]) }
+      : { code: text.slice(0, 1).toUpperCase(), label: text, text };
+  }
+
+  function makeToken(card, item) {
+    const existing = item.querySelector(':scope > .match-token');
+    if (existing) {
+      existing.type = 'button';
+      existing.draggable = false;
+      return existing;
+    }
+    const parts = choiceParts(item.textContent);
+    if (!parts.label) return null;
+    const token = document.createElement('button');
+    token.type = 'button';
+    token.className = 'match-token';
+    token.draggable = false;
+    token.dataset.letter = parts.code;
+    token.dataset.label = parts.label;
+    token.textContent = parts.text;
+    item.textContent = '';
+    item.appendChild(token);
+    return token;
+  }
+
+  function ensureMatching(card) {
+    const body = card.querySelector('.question-body');
+    if (!body) return;
+    const areas = [...body.querySelectorAll('.matching-answer-area')];
+    if (!areas.length) return;
+
+    const items = [...body.querySelectorAll('.matching-list > .matching-item, .matching-list > li')];
+    items.forEach(item => {
+      item.classList.add('matching-item');
+      makeToken(card, item);
+    });
+
+    areas.forEach(area => {
+      const input = area.querySelector('input[type="text"]');
+      if (!input) return;
+      input.tabIndex = -1;
+      let zone = area.querySelector('.match-drop-zone');
+      if (!zone) {
+        zone = document.createElement('button');
+        zone.type = 'button';
+        zone.className = 'match-drop-zone';
+        zone.textContent = PLACEHOLDER;
+        const label = area.querySelector('label');
+        area.insertBefore(zone, label || input.nextSibling);
+      }
+    });
+  }
+
+  function repairMatching(root) {
+    (root || document).querySelectorAll('.question-card').forEach(ensureMatching);
+  }
+
+  function selectToken(token) {
+    const card = token.closest('.question-card');
+    if (!card) return;
+    card.querySelectorAll('.match-token').forEach(button => button.classList.remove('selected'));
+    token.classList.add('selected');
+    activeByCard.set(card, token);
+  }
+
+  function placeToken(zone) {
+    const card = zone.closest('.question-card');
+    const area = zone.closest('.matching-answer-area');
+    const input = area?.querySelector('input[type="text"]');
+    const token = card ? activeByCard.get(card) : null;
+    if (!card || !area || !input) return;
+    if (!token) {
+      if (input.value) {
+        input.value = '';
+        zone.dataset.value = '';
+        zone.textContent = PLACEHOLDER;
+        zone.classList.remove('filled');
+        window.updateProgress?.();
+      }
+      return;
+    }
+    input.value = token.dataset.letter || '';
+    zone.dataset.value = input.value;
+    zone.textContent = token.textContent;
+    zone.classList.add('filled');
+    window.updateProgress?.();
+  }
+
+  function englishPhrase(value) {
+    const text = clean(value).replace(/^(?:[A-Z]|\d+)\s*[.\uff0e]\s*/i, '');
+    if (!/[A-Za-z]/.test(text)) return '';
+
+    const leadingEnglish = text.match(/^([A-Za-z][A-Za-z0-9+.#/&' -]*?)(?=\s*[\uff08(][^\uff09)]*[\u4e00-\u9fff])/);
+    if (leadingEnglish) return clean(leadingEnglish[1]);
+
+    const parenthetical = [...text.matchAll(/[\uff08(]\s*([^\uff08\uff09()]*)\s*[\uff09)]/g)]
+      .map(match => clean(match[1]))
+      .filter(part => /[A-Za-z]/.test(part) && !/[\u4e00-\u9fff]/.test(part));
+    if (parenthetical.length) return parenthetical[parenthetical.length - 1];
+
+    if (!/[\u4e00-\u9fff]/.test(text)) return text;
+    const runs = text.match(/[A-Za-z][A-Za-z0-9+.#/&' -]*/g) || [];
+    return clean(runs.join(' '));
+  }
+
+  function speakChoice(node) {
+    const phrase = englishPhrase(node?.textContent || '');
+    if (!phrase || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = 'en-US';
+    utterance.rate = 1;
+    const voice = window.speechSynthesis.getVoices().find(item => /^en-(US|GB)/i.test(item.lang));
+    if (voice) utterance.voice = voice;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function refresh() {
+    repairMatching(document);
+    window.speechSynthesis?.getVoices();
+  }
+
+  document.addEventListener('pointerdown', event => {
+    const token = event.target.closest?.('.question-body .match-token');
+    if (token) {
+      selectToken(token);
+      speakChoice(token);
+      return;
+    }
+    const choice = event.target.closest?.('.question-body label, .question-body .order-token, .question-body .yn-options button, .question-body .drag-choice');
+    if (choice) speakChoice(choice);
+  }, true);
+
+  document.addEventListener('click', event => {
+    const zone = event.target.closest?.('.question-body .match-drop-zone');
+    if (zone) placeToken(zone);
+  }, true);
+
+  document.addEventListener('change', event => {
+    const select = event.target.closest?.('.question-body select');
+    if (select) speakChoice(select.options[select.selectedIndex]);
+  }, true);
+
+  ['setupCards', 'startExam', 'showQuestion'].forEach(name => {
+    const previous = window[name];
+    if (typeof previous !== 'function') return;
+    window[name] = function ai900InteractionFix() {
+      const result = previous.apply(this, arguments);
+      setTimeout(refresh, 0);
+      return result;
+    };
+  });
+
+  const observer = new MutationObserver(() => {
+    if (observerQueued) return;
+    observerQueued = true;
+    requestAnimationFrame(() => {
+      observerQueued = false;
+      repairMatching(document);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    refresh();
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+  window.addEventListener('load', refresh);
 })();
 </script>
 </body>
