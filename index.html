@@ -18170,7 +18170,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260620-choice-fix-3';
+document.documentElement.dataset.ai900Build = '20260620-matching-fix-4';
 document.querySelectorAll('.question-body label, .question-body select option').forEach(function (element) {
   element.dataset.ai900SourceChoice = element.textContent || '';
 });
@@ -18582,6 +18582,33 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (!answer) return [];
     const values = [...answer.querySelectorAll('input[value]')].map(input => cleanText(input.getAttribute('value') || input.value).toUpperCase()).filter(Boolean);
     if (values.length) return values;
+    const areas = [...card.querySelectorAll('.matching-answer-area')];
+    const areaCodes = areas.map((area, index) => {
+      const text = cleanText(area.querySelector('label')?.textContent || '');
+      return (text.match(/^([A-Z]|\d+)\s*[.\uff0e]/i)?.[1] || String(index + 1)).toUpperCase();
+    });
+    const choiceCodes = [...card.querySelectorAll('.matching-item, .matching-list > li')].map(item => {
+      return getMatchChoice(item.textContent).letter;
+    }).filter(Boolean);
+    const answerLines = (answer.innerHTML || '')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<input[^>]*value=["']?([^"'\s>]+)[^>]*>/gi, ' $1 ')
+      .replace(/<[^>]+>/g, ' ')
+      .split('\n')
+      .map(cleanText)
+      .filter(Boolean);
+    const directional = Array(areas.length).fill('');
+    answerLines.forEach(line => {
+      const codes = [...line.matchAll(/(?:^|[\s\uff08(])([A-Z]|\d+)\s*[.\uff0e]/gi)].map(match => match[1].toUpperCase());
+      if (codes.length < 2) return;
+      const source = codes[0];
+      const target = codes[1];
+      const sourceArea = areaCodes.indexOf(source);
+      const targetArea = areaCodes.indexOf(target);
+      if (sourceArea >= 0 && choiceCodes.includes(target)) directional[sourceArea] = target;
+      else if (targetArea >= 0 && choiceCodes.includes(source)) directional[targetArea] = source;
+    });
+    if (directional.length && directional.every(Boolean)) return directional;
     const markedAnswers = [...answer.querySelectorAll('.matching-correct-answer')].map(span => {
       const match = cleanText(span.textContent).match(/(?:^|[（(]\s*)([A-Z]|\d+)\s*[.．)]/i);
       return match ? match[1].toUpperCase() : '';
