@@ -18425,6 +18425,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const prefix = next.match(/^((?:[A-Z]|\d+)\.\s*)/)?.[1] || '';
     const body = prefix ? next.slice(prefix.length).trim() : next;
     const withoutParens = stripAnyParentheses(body).trim();
+    const specializedVisionMap = new Map([
+      ['Azure AI 電腦視覺空間分析', 'Azure AI Vision Spatial Analysis'],
+      ['Azure AI 電腦視覺影像分析', 'Azure AI Vision Image Analysis'],
+      ['Azure AI 自訂視覺物件偵測', 'Azure AI Custom Vision Object Detection'],
+      ['Azure AI 自訂視覺分類', 'Azure AI Custom Vision Classification']
+    ]);
+    const specialized = specializedVisionMap.get(withoutParens) || specializedVisionMap.get(body);
+    if (specialized) return formatEnglishFirst(prefix, withoutParens || body, specialized);
     const direct = serviceEnglishOnlyMap.get(withoutParens) || serviceEnglishOnlyMap.get(body);
     if (direct) return formatEnglishFirst(prefix, withoutParens || body, direct);
     for (const [source, english] of serviceEnglishOnlyMap) {
