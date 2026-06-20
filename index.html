@@ -21120,11 +21120,37 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         const label = area.querySelector('label');
         area.insertBefore(zone, label || input.nextSibling);
       }
+      if (input.value) {
+        const ownToken = [...card.querySelectorAll('.match-token')]
+          .find(token => (token.dataset.letter || '') === input.value);
+        if (ownToken) {
+          zone.dataset.value = input.value;
+          zone.textContent = ownToken.textContent;
+          zone.classList.add('filled');
+        }
+      }
     });
   }
 
   function repairMatching(root) {
     (root || document).querySelectorAll('.question-card').forEach(ensureMatching);
+  }
+
+  function resetMatchingState(root) {
+    (root || document).querySelectorAll('.question-card').forEach(card => {
+      activeByCard.delete(card);
+      card.querySelectorAll('.match-token').forEach(token => token.classList.remove('selected'));
+      card.querySelectorAll('.matching-answer-area').forEach(area => {
+        const input = area.querySelector('input[type="text"]');
+        const zone = area.querySelector('.match-drop-zone');
+        if (input && !input.disabled && !input.readOnly) input.value = '';
+        if (zone) {
+          zone.dataset.value = '';
+          zone.textContent = PLACEHOLDER;
+          zone.classList.remove('filled', 'drag-over');
+        }
+      });
+    });
   }
 
   function selectToken(token) {
@@ -21203,9 +21229,13 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (choice) speakChoice(choice);
   }, true);
 
-  document.addEventListener('click', event => {
+  window.addEventListener('click', event => {
     const zone = event.target.closest?.('.question-body .match-drop-zone');
-    if (zone) placeToken(zone);
+    if (zone) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      placeToken(zone);
+    }
   }, true);
 
   document.addEventListener('change', event => {
@@ -21217,8 +21247,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const previous = window[name];
     if (typeof previous !== 'function') return;
     window[name] = function ai900InteractionFix() {
+      if (name === 'startExam') resetMatchingState(document);
       const result = previous.apply(this, arguments);
-      setTimeout(refresh, 0);
+      setTimeout(() => {
+        refresh();
+        if (name === 'startExam') resetMatchingState(document);
+      }, 0);
       return result;
     };
   });
