@@ -18170,7 +18170,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260620-matching-fix-4';
+document.documentElement.dataset.ai900Build = '20260621-review-fix-5';
 document.querySelectorAll('.question-body label, .question-body select option').forEach(function (element) {
   element.dataset.ai900SourceChoice = element.textContent || '';
 });
@@ -18188,11 +18188,11 @@ function normalizeText(text) { return (text || '').replace(/\s+/g, ' ').trim(); 
 function setupYesNoControls(card) { const answer = card.querySelector('.answer-content .answer'); const items = [...card.querySelectorAll('.yes-no-item')]; if (!answer || items.length === 0) return; const values = [...answer.innerText.matchAll(/(?:^|\n|\s)(\d+)\.\s*(是|否)/g)].map(m => m[2]); items.forEach((item, i) => { if (item.querySelector('.yn-options')) return; const group = document.createElement('div'); group.className = 'yn-options'; group.dataset.correct = values[i] || ''; group.innerHTML = '<button type="button" data-value="是">是</button><button type="button" data-value="否">否</button>'; group.addEventListener('click', (event) => { const btn = event.target.closest('button[data-value]'); if (!btn || document.body.classList.contains('submitted')) return; [...group.children].forEach(child => child.classList.remove('selected')); btn.classList.add('selected'); updateProgress(); }); item.appendChild(group); }); }
 function setupCards() { questions = [...document.querySelectorAll('.question-card')]; questions.forEach((card, idx) => { card.dataset.position = idx; card.querySelectorAll('.answer-content').forEach(el => el.classList.remove('show')); card.querySelectorAll('.answer-toggle').forEach(btn => { btn.disabled = true; btn.textContent = '顯示答案與解析'; }); setupYesNoControls(card); card.querySelectorAll('.yn-options button').forEach(btn => { btn.disabled = false; btn.classList.remove('selected'); }); card.querySelectorAll('input, select, textarea').forEach(el => { el.disabled = false; if ((el.matches('input[type="text"]') || el.matches('textarea')) && el.value) el.value = ''; if (el.matches('select')) el.selectedIndex = -1; el.addEventListener('change', updateProgress); el.addEventListener('input', updateProgress); }); }); }
 function selectedQuestionCount() { const value = document.getElementById('question-count').value; return value === 'all' ? questions.length : Number(value); }
-const duplicateQuestionGroups = [['exam-question-39','exam-question-129','exam-question-325'],['exam-question-48','exam-question-320'],['exam-question-59','exam-question-310'],['exam-question-81','exam-question-127'],['exam-question-141','exam-question-324'],['exam-question-358','exam-question-363']];
+const duplicateQuestionGroups = [['exam-question-39','exam-question-129','exam-question-325'],['exam-question-48','exam-question-320'],['exam-question-59','exam-question-310'],['exam-question-67','exam-question-294'],['exam-question-81','exam-question-127'],['exam-question-111','exam-question-284'],['exam-question-141','exam-question-324'],['exam-question-358','exam-question-363']];
 const duplicateQuestionMap = new Map(duplicateQuestionGroups.flatMap((group, index) => group.map(id => [id, 'duplicate-group-' + index])));
 function normalizeQuestionForDedupe(card) { const clone = card.cloneNode(true); clone.querySelectorAll('.answer-content, .question-meta, input, select, textarea, button').forEach(node => node.remove()); return (clone.textContent || '').replace(/第\s*\d+\s*題/g, '').replace(/\s+/g, '').replace(/[，。！？、；：:;,.!?()（）\[\]【】「」『』\-—_/|]/g, '').toLowerCase(); }
 function questionDedupeKey(card) { return duplicateQuestionMap.get(card.id) || normalizeQuestionForDedupe(card); }
-function uniqueQuestionSelection(pool, limit) { const selected = [], deferred = [], seen = new Set(); pool.forEach(card => { const key = questionDedupeKey(card); if (key && seen.has(key)) deferred.push(card); else { selected.push(card); if (key) seen.add(key); } }); return selected.concat(deferred).slice(0, limit); }
+function uniqueQuestionSelection(pool, limit) { const selected = [], seen = new Set(); pool.forEach(card => { const key = questionDedupeKey(card); if (key && seen.has(key)) return; selected.push(card); if (key) seen.add(key); }); return selected.slice(0, limit); }
 function startExam() { examSubmitted = false; state.review.clear(); document.body.classList.remove('review-mode', 'show-all-review', 'submitted'); document.getElementById('submit-exam').disabled = false; setupCards(); const category = document.getElementById('category-filter').value; const count = selectedQuestionCount(); const random = document.getElementById('shuffle-questions').checked; const pool = questions.filter(card => category === 'all' || card.dataset.category === category); const orderedPool = random ? shuffleArray([...pool]) : [...pool]; const selected = uniqueQuestionSelection(orderedPool, Math.min(count, pool.length)); questions.forEach(card => card.classList.add('not-in-exam')); selected.forEach((card, idx) => { card.classList.remove('not-in-exam'); card.dataset.examOrder = idx; const badge = card.querySelector('.exam-number'); if (badge) badge.textContent = '第 ' + (idx + 1) + ' 題'; }); questions = selected; currentIndex = 0; examSubmitted = false; remainingSeconds = Number(document.getElementById('time-limit').value) * 60; document.body.classList.add('exam-active'); document.body.classList.remove('review-mode'); document.getElementById('start-screen').hidden = true; document.getElementById('exam-shell').hidden = false; document.getElementById('results').hidden = true; buildNavigator(); showQuestion(0); startTimer(); updateProgress(); }
 function buildNavigator() { const nav = document.getElementById('question-nav'); nav.innerHTML = ''; questions.forEach((_, idx) => { const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = idx + 1; btn.addEventListener('click', () => showQuestion(idx)); nav.appendChild(btn); }); }
 function showQuestion(index) { currentIndex = Math.max(0, Math.min(index, questions.length - 1)); questions.forEach((card, idx) => card.classList.toggle('current', idx === currentIndex)); document.querySelectorAll('#question-nav button').forEach((btn, idx) => btn.classList.toggle('active', idx === currentIndex)); document.getElementById('position').textContent = (currentIndex + 1) + ' / ' + questions.length; document.getElementById('prev-question').disabled = currentIndex === 0; document.getElementById('next-question').disabled = currentIndex === questions.length - 1; document.getElementById('mark-review').classList.toggle('selected', state.review.has(questions[currentIndex]?.id)); updateProgress(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -20925,12 +20925,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Microsoft 機器人架構', 'Microsoft Bot Framework'],
     ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
     ['Power 虛擬代理程式', 'Power Virtual Agents'],
-    ['Power Virtual Agents', 'Power Virtual Agents'],
-    ['分類', 'Classification'],
-    ['迴歸', 'Regression'],
-    ['回歸', 'Regression'],
-    ['叢集', 'Clustering'],
-    ['蓄集', 'Clustering']
+    ['Power Virtual Agents', 'Power Virtual Agents']
   ]);
   const reverse = new Map([
     ['Language Understanding', '語言理解'],
@@ -21010,7 +21005,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
 
   function normalizeChoiceText(value) {
-    const original = clean(value);
+    const original = clean(value)
+      .replace(/^((?:[A-Z]|\d+)\s*[.\uff0e]\s*)\[[x\s]\]\s*/i, '$1')
+      .replace(/^\[[x\s]\]\s*/i, '');
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
     const { prefix, body } = splitPrefix(original);
     if (/^文字擷取(?:\s*[（(].*[）)])?$/i.test(body)) return prefix + '文字擷取（Text Extraction / OCR）';
