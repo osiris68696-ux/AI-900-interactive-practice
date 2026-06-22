@@ -18170,7 +18170,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260621-review-fix-5';
+document.documentElement.dataset.ai900Build = '20260622-matching-order-fix-7';
 document.querySelectorAll('.question-body label, .question-body select option').forEach(function (element) {
   element.dataset.ai900SourceChoice = element.textContent || '';
 });
@@ -18575,7 +18575,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   function getMatchChoice(text) {
     const cleaned = cleanText(text);
     const match = cleaned.match(/^([A-Z]|\d+)\.?\s*(.*)$/i);
-    return match ? { letter: match[1].toUpperCase(), label: cleanText(match[2] || cleaned), text: cleaned } : { letter: cleaned.slice(0, 1), label: cleaned, text: cleaned };
+    return match
+      ? { letter: match[1].toUpperCase(), label: cleanText(match[2] || cleaned), text: cleaned }
+      : { letter: cleaned.toUpperCase(), label: cleaned, text: cleaned };
   }
   function parseMatchingAnswers(card) {
     const answer = card.querySelector('.answer-content .answer');
@@ -18584,8 +18586,9 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (values.length) return values;
     const areas = [...card.querySelectorAll('.matching-answer-area')];
     const areaCodes = areas.map((area, index) => {
-      const text = cleanText(area.querySelector('label')?.textContent || '');
-      return (text.match(/^([A-Z]|\d+)\s*[.\uff0e]/i)?.[1] || String(index + 1)).toUpperCase();
+      const label = area.querySelector('label');
+      const text = cleanText(label?.dataset.ai900SourceChoice || label?.textContent || '');
+      return (text.match(/^([A-Z]|\d+)(?=\s*(?:[.\uff0e\uff08(]|$))/i)?.[1] || String(index + 1)).toUpperCase();
     });
     const choiceCodes = [...card.querySelectorAll('.matching-item, .matching-list > li')].map(item => {
       return getMatchChoice(item.textContent).letter;
@@ -18660,7 +18663,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
         token.draggable = true;
         token.dataset.letter = choice.letter;
         token.dataset.label = choice.label;
-        token.textContent = choice.letter + '. ' + choice.label;
+        token.textContent = choice.text;
         token.addEventListener('click', () => {
           card.querySelectorAll('.match-token').forEach(btn => btn.classList.remove('selected'));
           token.classList.add('selected');
@@ -18713,7 +18716,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   }
   let activeOrderToken = null;
   function normalizeOrderValue(value) {
-    return optionDedupeKey(cleanText(value).replace(/\s*[（(](?:更準確|較準確|註|注意|應理解)[\s\S]*$/i, ''));
+    return optionDedupeKey(cleanText(value).replace(/\s*[（(](?:更準確|較準確|註|注意|應理解)[\s\S]*$/i, ''))
+      .replace(/[。；;，,、:：.!?！？]+$/g, '');
   }
   function parseOrderAnswers(card) {
     const answerItems = [...card.querySelectorAll('.answer-content .answer ol li')].map(li => cleanText(li.textContent)).filter(Boolean);
@@ -21034,6 +21038,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const selector = '.question-body label, .question-body select option, .question-body .matching-item, .question-body .match-token, .question-body .order-token, .question-body .drag-choice';
     base.querySelectorAll(selector).forEach(element => {
       if (element.closest('.answer-content')) return;
+      if (element.matches('label') && element.closest('.matching-answer-area')) return;
       const before = element.dataset.ai900SourceChoice || originalChoiceText.get(element) || element.textContent || '';
       const after = element.dataset.ai900PreserveOriginal === 'true' ? clean(before) : normalizeChoiceText(before);
       if (after && after !== clean(element.textContent || '')) element.textContent = after;
@@ -21158,7 +21163,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const match = text.match(/^([A-Z]|\d+)\s*[.\uff0e]\s*(.*)$/i);
     return match
       ? { code: match[1].toUpperCase(), label: clean(match[2]), text: match[1].toUpperCase() + '. ' + clean(match[2]) }
-      : { code: text.slice(0, 1).toUpperCase(), label: text, text };
+      : { code: text.toUpperCase(), label: text, text };
   }
 
   function makeToken(card, item) {
