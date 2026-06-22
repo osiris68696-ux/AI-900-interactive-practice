@@ -18170,7 +18170,16 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260622-choice-speech-fix-8';
+document.documentElement.dataset.ai900Build = '20260622-choice-click-fix-9';
+document.querySelectorAll('.question-card').forEach(function (card) {
+  card.querySelectorAll('.question-body li').forEach(function (item, index) {
+    var input = item.querySelector(':scope > input[type="radio"], :scope > input[type="checkbox"]');
+    var label = item.querySelector(':scope > label');
+    if (!input || !label) return;
+    if (!input.id) input.id = card.id + '-choice-' + (index + 1);
+    if (label.htmlFor !== input.id) label.htmlFor = input.id;
+  });
+});
 document.querySelectorAll('.question-body label, .question-body select option').forEach(function (element) {
   element.dataset.ai900SourceChoice = element.textContent || '';
 });
@@ -20914,6 +20923,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Azure AI Search', 'Azure AI Search'],
     ['Azure AI Custom Vision', 'Azure AI Custom Vision'],
     ['Azure AI Foundry 服務', 'Azure AI Foundry Service'],
+    ['Azure 認知服務', 'Azure Cognitive Services'],
     ['Azure AI 視覺', 'Azure AI Vision'],
     ['Azure AI 視覺服務', 'Azure AI Vision'],
     ['Azure AI 電腦視覺', 'Azure AI Vision'],
