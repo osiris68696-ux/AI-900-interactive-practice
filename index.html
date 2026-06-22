@@ -18170,7 +18170,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260622-matching-order-fix-7';
+document.documentElement.dataset.ai900Build = '20260622-choice-speech-fix-8';
 document.querySelectorAll('.question-body label, .question-body select option').forEach(function (element) {
   element.dataset.ai900SourceChoice = element.textContent || '';
 });
@@ -18278,7 +18278,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     control.className = 'blank-select';
     control.dataset.correct = answer;
     const finalOptions = inferBlankOptions(card, answer, options).map(sanitizeOptionText);
-    control.innerHTML = '<option value="">請選擇</option>' + finalOptions.map(option => '<option value="' + option.replace(/"/g, '&quot;') + '">' + option + '</option>').join('');
+    const prompt = new Option('請選擇', '');
+    prompt.dataset.ai900SourceChoice = '請選擇';
+    control.appendChild(prompt);
+    finalOptions.forEach(optionText => {
+      const option = new Option(optionText, optionText);
+      option.dataset.ai900SourceChoice = optionText;
+      control.appendChild(option);
+    });
     control.addEventListener('change', () => { if (typeof updateProgress === 'function') updateProgress(); });
     target.replaceWith(control);
   }
@@ -18289,6 +18296,18 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       if (!title.includes('下拉選單') && !title.includes('填充題')) return;
       const body = card.querySelector('.question-body');
       if (!body) return;
+      const sourceSelects = [...body.querySelectorAll('select:not(.blank-select)')];
+      if (sourceSelects.length) {
+        sourceSelects.forEach(select => {
+          const answerHint = select.nextElementSibling;
+          if (answerHint?.matches('input[readonly], input[disabled]')) {
+            answerHint.hidden = true;
+            answerHint.setAttribute('aria-hidden', 'true');
+          }
+        });
+        card.dataset.fillReady = 'true';
+        return;
+      }
       let options = null;
       body.querySelectorAll('p').forEach(p => {
         p.innerHTML = p.innerHTML.replace(/\[下拉選單，可見選項：([^\]]+)\]/g, function (_, list) {
@@ -19952,11 +19971,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   if (typeof originalGradeCard === 'function' && !originalGradeCard.__blankSelectWrapped) {
     window.gradeCard = function (card) {
       const result = originalGradeCard.apply(this, arguments);
-      card.querySelectorAll('select.blank-select[data-correct]').forEach(select => {
-        const correct = clean(select.dataset.correct || '');
+      card.querySelectorAll('.question-body select').forEach(select => {
+        const markedOption = select.querySelector('option[data-correct="true"]');
+        const correct = clean(select.dataset.correct || markedOption?.value || markedOption?.textContent || '');
         if (!correct) return;
         result.scorable++;
-        if (sameAnswer(select.value, correct)) result.correct++;
+        if (select.classList.contains('blank-select')) {
+          if (sameAnswer(select.value, correct)) result.correct++;
+        } else if (select.selectedOptions[0] === markedOption || sameAnswer(select.value, correct)) {
+          result.correct++;
+        }
       });
       return result;
     };
@@ -20874,7 +20898,6 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   const stripParens = value => clean(value)
     .replace(/\s*[（(][^（）()]*[A-Za-z][^（）()]*[）)]/g, '')
     .replace(/\s*[（(]\s*[）)]/g, '')
-    .replace(/[）)]+$/g, '')
     .trim();
   const azureMap = new Map([
     ['Azure AI 電腦視覺服務中的 [描述影像] 作業', 'Azure AI Vision Describe Image operation'],
@@ -20890,6 +20913,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Azure AI Document Intelligence', 'Azure AI Document Intelligence'],
     ['Azure AI Search', 'Azure AI Search'],
     ['Azure AI Custom Vision', 'Azure AI Custom Vision'],
+    ['Azure AI Foundry 服務', 'Azure AI Foundry Service'],
     ['Azure AI 視覺', 'Azure AI Vision'],
     ['Azure AI 視覺服務', 'Azure AI Vision'],
     ['Azure AI 電腦視覺', 'Azure AI Vision'],
@@ -20982,9 +21006,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       ['azure ai speech', 'Azure AI 語音'],
       ['azure ai document intelligence', 'Azure AI 文件智慧'],
       ['azure ai search', 'Azure AI 搜尋'],
-      ['azure ai custom vision', 'Azure AI 自訂視覺']
+      ['azure ai custom vision', 'Azure AI 自訂視覺'],
+      ['azure machine learning', 'Azure 機器學習'],
+      ['azure ai foundry service', 'Azure AI Foundry 服務'],
+      ['azure ai foundry', 'Azure AI Foundry']
     ]);
-    const englishServiceMatch = bodyClean.match(/^(Azure AI [A-Za-z ]+)\s*(?:[（(]\s*[^）)]*\s*[）)])?$/i);
+    const englishServiceMatch = bodyClean.match(/^(Azure(?: AI)? [A-Za-z][A-Za-z ]*)\s*(?:[（(]\s*[^）)]*\s*[）)])?$/i);
     if (englishServiceMatch) {
       const en = clean(englishServiceMatch[1]);
       const zh = englishServiceZh.get(en.toLowerCase());
@@ -21014,6 +21041,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       .replace(/^\[[x\s]\]\s*/i, '');
     if (!original || original === '請選擇' || original === '是' || original === '否') return original;
     const { prefix, body } = splitPrefix(original);
+    const mlTermBase = clean(body)
+      .replace(/[。；;，,、:：.!?！？]+$/g, '')
+      .replace(/\s*[（(][^）)]*[）)]\s*$/g, '')
+      .toLowerCase();
+    const mlBilingual = new Map([
+      ['分類', ['Classification', '分類']], ['classification', ['Classification', '分類']],
+      ['迴歸', ['Regression', '迴歸']], ['回歸', ['Regression', '迴歸']], ['regression', ['Regression', '迴歸']],
+      ['叢集', ['Clustering', '叢集']], ['蓄集', ['Clustering', '叢集']], ['clustering', ['Clustering', '叢集']]
+    ]).get(mlTermBase);
+    if (mlBilingual) return prefix + mlBilingual[0] + '（' + mlBilingual[1] + '）';
     if (/^文字擷取(?:\s*[（(].*[）)])?$/i.test(body)) return prefix + '文字擷取（Text Extraction / OCR）';
     const azure = azureDisplay(prefix, body);
     if (azure) return azure;
@@ -21089,6 +21126,14 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
           if (original && clean(label.textContent) !== clean(original)) label.textContent = clean(original);
         });
       });
+      if (card.id === 'exam-question-350') {
+        card.querySelectorAll('.question-body label').forEach(label => {
+          const source = clean(label.dataset.ai900SourceChoice || originalChoiceText.get(label) || label.textContent);
+          const { prefix } = splitPrefix(source);
+          if (/Normalize Data/i.test(source)) label.textContent = prefix + '正常化資料模組';
+          else if (/Select Columns in Dataset/i.test(source)) label.textContent = prefix + '選取資料集中的資料行模組';
+        });
+      }
     });
   }
 
@@ -21295,7 +21340,8 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function speakChoice(node) {
     const phrase = englishPhrase(node?.textContent || '');
-    if (!phrase || !('speechSynthesis' in window)) return;
+    const compact = clean(phrase);
+    if (!compact || /^(?:AI)$/i.test(compact) || /^\d+(?:\.\d+)?\s*(?:KB|MB|GB|TB)$/i.test(compact) || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(phrase);
     utterance.lang = 'en-US';
