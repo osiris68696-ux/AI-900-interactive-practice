@@ -18185,7 +18185,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260625-question-type-filter-1';
+document.documentElement.dataset.ai900Build = '20260625-ml-choice-display-1';
 document.querySelectorAll('.question-card').forEach(function (card) {
   card.querySelectorAll('.question-body li').forEach(function (item, index) {
     var input = item.querySelector(':scope > input[type="radio"], :scope > input[type="checkbox"]');
@@ -18378,7 +18378,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
   const termMap = new Map(termMappings);
   const exactTermMappings = [
     ['模型定型', 'Model Training'], ['模型訓練', 'Model Training'], ['模型重新訓練', 'Model Retraining'], ['模型評估', 'Model Evaluation'], ['評估模型', 'Evaluate Model'], ['評分模型', 'Score Model'],
-    ['分類', 'Classification'], ['二元分類', 'Binary Classification'], ['多類別分類', 'Multiclass Classification'], ['迴歸', 'Regression'], ['回歸', 'Regression'], ['線性迴歸', 'Linear Regression'], ['叢集', 'Clustering'], ['蓄集', 'Clustering'], ['異常偵測', 'Anomaly Detection'],
+    ['分類', 'Classification'], ['二元分類', 'Binary Classification'], ['多類別分類', 'Multiclass Classification'], ['迴歸', 'Regression'], ['回歸', 'Regression'], ['線性迴歸', 'Linear Regression'], ['叢集', 'Clustering'], ['聚集', 'Clustering'], ['蓄集', 'Clustering'], ['異常偵測', 'Anomaly Detection'],
     ['模型定型', 'Model Training'], ['特徵工程', 'Feature Engineering'], ['特徵選取', 'Feature Selection'], ['正規化', 'Normalization'], ['平衡精準度', 'Balanced Accuracy'], ['混淆矩陣', 'Confusion Matrix'], ['閾值', 'Threshold'],
     ['分割資料', 'Split Data'], ['選取資料集中的資料行', 'Select Columns in Dataset'], ['資料準備', 'Data Preparation'], ['資料加密', 'Data Encryption'], ['已註冊模型', 'Registered Model'], ['已註冊的資料集', 'Registered Dataset'], ['資料集', 'Dataset'], ['模組', 'Module'], ['元件', 'Component'], ['計算', 'Compute'], ['管線', 'Pipeline'],
     ['自然語言處理', 'Natural Language Processing'], ['情感分析', 'Sentiment Analysis'], ['實體辨識', 'Entity Recognition'], ['關鍵片語擷取', 'Key Phrase Extraction'], ['關鍵片語提取', 'Key Phrase Extraction'], ['關鍵片語摘取', 'Key Phrase Extraction'], ['關鍵片語顯取', 'Key Phrase Extraction'], ['語言偵測', 'Language Detection'], ['語言檢測', 'Language Detection'], ['交談語言理解', 'Conversational Language Understanding'], ['語言理解', 'Language Understanding'], ['語音', 'Speech'], ['語音轉換文字', 'Speech to Text'], ['文字轉換語音', 'Text to Speech'],
@@ -19219,6 +19219,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['回歸', 'Regression'],
     ['線性迴歸', 'Linear Regression'],
     ['叢集', 'Clustering'],
+    ['聚集', 'Clustering'],
     ['叢集模型', 'Clustering Model'],
     ['蓄集', 'Clustering'],
     ['蓄集 (應為叢集)', 'Clustering'],
@@ -21082,7 +21083,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     const mlBilingual = new Map([
       ['分類', ['Classification', '分類']], ['classification', ['Classification', '分類']],
       ['迴歸', ['Regression', '迴歸']], ['回歸', ['Regression', '迴歸']], ['regression', ['Regression', '迴歸']],
-      ['叢集', ['Clustering', '叢集']], ['蓄集', ['Clustering', '叢集']], ['clustering', ['Clustering', '叢集']]
+      ['叢集', ['Clustering', '叢集']], ['聚集', ['Clustering', '聚集']], ['蓄集', ['Clustering', '蓄集']], ['clustering', ['Clustering', '叢集']]
     ]).get(mlTermBase);
     if (mlBilingual) return prefix + mlBilingual[0] + '（' + mlBilingual[1] + '）';
     if (/^文字擷取(?:\s*[（(].*[）)])?$/i.test(body)) return prefix + '文字擷取（Text Extraction / OCR）';
@@ -21443,6 +21444,80 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     observer.observe(document.body, { childList: true, subtree: true });
   });
   window.addEventListener('load', refresh);
+})();
+</script>
+<script id="ai900-ml-answer-term-display">
+(function () {
+  function clean(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+  function splitPrefix(value) {
+    const text = clean(value);
+    const match = text.match(/^((?:[A-Z]|\d+)\s*[.．、)]\s*)(.+)$/i);
+    return match ? { prefix: match[1].replace(/[．、)]\s*$/, '. '), body: clean(match[2]) } : { prefix: '', body: text };
+  }
+  function normalizeMlChoice(value) {
+    const text = clean(value).replace(/^\[[x\s]\]\s*/i, '');
+    if (!text || text === '請選擇' || text === '是' || text === '否') return '';
+    const { prefix, body } = splitPrefix(text);
+    const bodyCore = clean(body)
+      .replace(/[。；;，,、:：.!?！？]+$/g, '')
+      .replace(/\s*[（(]\s*(Regression|Classification|Clustering)\s*[）)]\s*$/i, '')
+      .replace(/\s*[（(]\s*(迴歸|回歸|分類|聚集|叢集|蓄集)\s*[）)]\s*$/g, '')
+      .toLowerCase();
+    const map = new Map([
+      ['regression', ['Regression', '迴歸']],
+      ['迴歸', ['Regression', '迴歸']],
+      ['回歸', ['Regression', '回歸']],
+      ['classification', ['Classification', '分類']],
+      ['分類', ['Classification', '分類']],
+      ['clustering', ['Clustering', '叢集']],
+      ['叢集', ['Clustering', '叢集']],
+      ['聚集', ['Clustering', '聚集']],
+      ['蓄集', ['Clustering', '蓄集']]
+    ]);
+    const pair = map.get(bodyCore);
+    return pair ? prefix + pair[0] + '（' + pair[1] + '）' : '';
+  }
+  function apply(root) {
+    const base = root || document;
+    const selector = [
+      '.question-body label',
+      '.question-body select option',
+      '.question-body .matching-item',
+      '.question-body .match-token',
+      '.question-body .match-drop-zone',
+      '.question-body .order-token',
+      '.question-body .order-slot',
+      '.question-body .drag-choice',
+      '.question-body .drop-zone'
+    ].join(', ');
+    base.querySelectorAll(selector).forEach(element => {
+      if (element.closest('.answer-content')) return;
+      const next = normalizeMlChoice(element.textContent || '');
+      if (next && clean(element.textContent) !== next) element.textContent = next;
+    });
+  }
+  ['setupCards', 'startExam', 'showQuestion'].forEach(name => {
+    const previous = window[name];
+    if (typeof previous !== 'function') return;
+    window[name] = function ai900MlAnswerTermDisplay() {
+      const result = previous.apply(this, arguments);
+      setTimeout(() => apply(document), 0);
+      return result;
+    };
+  });
+  document.addEventListener('DOMContentLoaded', () => apply(document));
+  window.addEventListener('load', () => apply(document));
+  const observer = new MutationObserver(() => {
+    if (observer._queued) return;
+    observer._queued = true;
+    requestAnimationFrame(() => {
+      observer._queued = false;
+      apply(document);
+    });
+  });
+  document.addEventListener('DOMContentLoaded', () => observer.observe(document.body, { childList: true, subtree: true }));
 })();
 </script>
 </body>
