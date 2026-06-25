@@ -421,6 +421,12 @@ body:not(.exam-active) .timer-floating {
 .wrong-review-heading::before {
   background: linear-gradient(180deg, var(--poke-purple), var(--poke-red));
 }
+body.submitted:not(.review-panel-open) .exam-layout {
+  display: none;
+}
+body.submitted.review-panel-open .exam-layout {
+  display: grid;
+}
 .pokemon-duo {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -18185,7 +18191,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260625-qna-choice-display-1';
+document.documentElement.dataset.ai900Build = '20260625-wrong-review-only-1';
 document.querySelectorAll('.question-card').forEach(function (card) {
   card.querySelectorAll('.question-body li').forEach(function (item, index) {
     var input = item.querySelector(':scope > input[type="radio"], :scope > input[type="checkbox"]');
@@ -19021,6 +19027,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function setReviewQuestionSet(cards) {
     if (!cards.length) return;
+    document.body.classList.add('review-panel-open');
     document.querySelectorAll('.question-card').forEach(card => {
       card.classList.add('not-in-exam');
       card.classList.remove('current');
@@ -19116,6 +19123,7 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     installScoreReport();
     if (examSubmitted) return;
     clearInterval(timerId); examSubmitted = true; document.body.classList.add('review-mode', 'submitted');
+    document.body.classList.remove('review-panel-open');
     questions.forEach(card => { card.querySelectorAll('input, select, textarea, button').forEach(el => { if (!el.closest('.actions-row')) el.disabled = true; }); });
     submittedReviewQuestions = [...questions];
     let scorable = 0, correct = 0; const wrongCards = [], wrongIds = [], correctIds = [];
