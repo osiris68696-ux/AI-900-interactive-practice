@@ -772,6 +772,7 @@ body {
 .home-quiz-settings {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin: 16px 0 0;
   padding: 14px 16px;
@@ -1016,7 +1017,7 @@ button.shadow-card {
         <div class="setup-outline">
           <div class="outline-row">AI 工作負載與負責任 AI</div>
           <div class="outline-row">機器學習、電腦視覺、自然語言處理</div>
-          <div class="outline-row">選擇題、是非題、配對題、拖放排序題</div>
+          <div class="outline-row">可依題數、時間與題型集中練習</div>
         </div>
         <div class="home-quiz-settings">
           <div class="home-setting-field">
@@ -1035,6 +1036,19 @@ button.shadow-card {
               <option value="60" selected>60 分鐘</option>
               <option value="90">90 分鐘</option>
               <option value="180">180 分鐘</option>
+            </select>
+          </div>
+          <div class="home-setting-field">
+            <label for="home-question-type">題型</label>
+            <select id="home-question-type">
+              <option value="all" selected>全部題型</option>
+              <option value="choice">選擇題</option>
+              <option value="multi">多選題</option>
+              <option value="yesno">是/否題</option>
+              <option value="fill">下拉/填空題</option>
+              <option value="matching">配對題</option>
+              <option value="ordering">排序題</option>
+              <option value="essay">問答題</option>
             </select>
           </div>
         </div>
@@ -1083,6 +1097,7 @@ button.shadow-card {
           <div class="field"><label for="question-count">題數</label><select id="question-count"><option value="45" selected>45 題</option><option value="60">60 題</option><option value="90">90 題</option><option value="100">100 題</option><option value="all">387 題</option></select></div>
           <div class="field"><label for="time-limit">時間</label><select id="time-limit"><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60" selected>60 分鐘</option><option value="90">90 分鐘</option><option value="180">180 分鐘</option></select></div>
           <div class="field"><label for="category-filter">技能範圍</label><select id="category-filter"><option value="all">全部範圍</option><option value="outline-1">AI 工作負載與考量</option><option value="outline-2">機器學習</option><option value="outline-3">電腦視覺</option><option value="outline-4">自然語言處理</option></select></div>
+          <div class="field"><label for="question-type-filter">題型</label><select id="question-type-filter"><option value="all" selected>全部題型</option><option value="choice">選擇題</option><option value="multi">多選題</option><option value="yesno">是/否題</option><option value="fill">下拉/填空題</option><option value="matching">配對題</option><option value="ordering">排序題</option><option value="essay">問答題</option></select></div>
           <div class="toggle-line"><input type="checkbox" id="shuffle-questions" checked><label for="shuffle-questions">隨機抽題</label></div>
         </div>
         <div class="start-actions">
@@ -18170,7 +18185,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260622-choice-click-fix-9';
+document.documentElement.dataset.ai900Build = '20260625-question-type-filter-1';
 document.querySelectorAll('.question-card').forEach(function (card) {
   card.querySelectorAll('.question-body li').forEach(function (item, index) {
     var input = item.querySelector(':scope > input[type="radio"], :scope > input[type="checkbox"]');
@@ -18197,12 +18212,15 @@ function normalizeText(text) { return (text || '').replace(/\s+/g, ' ').trim(); 
 function setupYesNoControls(card) { const answer = card.querySelector('.answer-content .answer'); const items = [...card.querySelectorAll('.yes-no-item')]; if (!answer || items.length === 0) return; const values = [...answer.innerText.matchAll(/(?:^|\n|\s)(\d+)\.\s*(是|否)/g)].map(m => m[2]); items.forEach((item, i) => { if (item.querySelector('.yn-options')) return; const group = document.createElement('div'); group.className = 'yn-options'; group.dataset.correct = values[i] || ''; group.innerHTML = '<button type="button" data-value="是">是</button><button type="button" data-value="否">否</button>'; group.addEventListener('click', (event) => { const btn = event.target.closest('button[data-value]'); if (!btn || document.body.classList.contains('submitted')) return; [...group.children].forEach(child => child.classList.remove('selected')); btn.classList.add('selected'); updateProgress(); }); item.appendChild(group); }); }
 function setupCards() { questions = [...document.querySelectorAll('.question-card')]; questions.forEach((card, idx) => { card.dataset.position = idx; card.querySelectorAll('.answer-content').forEach(el => el.classList.remove('show')); card.querySelectorAll('.answer-toggle').forEach(btn => { btn.disabled = true; btn.textContent = '顯示答案與解析'; }); setupYesNoControls(card); card.querySelectorAll('.yn-options button').forEach(btn => { btn.disabled = false; btn.classList.remove('selected'); }); card.querySelectorAll('input, select, textarea').forEach(el => { el.disabled = false; if ((el.matches('input[type="text"]') || el.matches('textarea')) && el.value) el.value = ''; if (el.matches('select')) el.selectedIndex = -1; el.addEventListener('change', updateProgress); el.addEventListener('input', updateProgress); }); }); }
 function selectedQuestionCount() { const value = document.getElementById('question-count').value; return value === 'all' ? questions.length : Number(value); }
+function selectedQuestionType() { return document.getElementById('question-type-filter')?.value || 'all'; }
+function questionTypeText(card) { const title = card.querySelector('.question-title'); const raw = title?.dataset.originalTitle || title?.textContent || ''; const match = raw.match(/[（(]([^）)]*題[^）)]*)[）)]/); return normalizeText(match ? match[1] : raw); }
+function questionMatchesType(card, type) { const text = questionTypeText(card); if (!type || type === 'all') return true; if (type === 'choice') return /選擇題/.test(text) && !/選兩項|多選/.test(text); if (type === 'multi') return /多選|選兩項/.test(text); if (type === 'yesno') return /是\s*\/\s*否|是非|判斷/.test(text); if (type === 'fill') return /下拉|填充|填空/.test(text); if (type === 'matching') return /配對/.test(text); if (type === 'ordering') return /排序/.test(text); if (type === 'essay') return /問答/.test(text); return true; }
 const duplicateQuestionGroups = [['exam-question-39','exam-question-129','exam-question-325'],['exam-question-48','exam-question-320'],['exam-question-59','exam-question-310'],['exam-question-67','exam-question-294'],['exam-question-81','exam-question-127'],['exam-question-111','exam-question-284'],['exam-question-141','exam-question-324'],['exam-question-358','exam-question-363']];
 const duplicateQuestionMap = new Map(duplicateQuestionGroups.flatMap((group, index) => group.map(id => [id, 'duplicate-group-' + index])));
 function normalizeQuestionForDedupe(card) { const clone = card.cloneNode(true); clone.querySelectorAll('.answer-content, .question-meta, input, select, textarea, button').forEach(node => node.remove()); return (clone.textContent || '').replace(/第\s*\d+\s*題/g, '').replace(/\s+/g, '').replace(/[，。！？、；：:;,.!?()（）\[\]【】「」『』\-—_/|]/g, '').toLowerCase(); }
 function questionDedupeKey(card) { return duplicateQuestionMap.get(card.id) || normalizeQuestionForDedupe(card); }
 function uniqueQuestionSelection(pool, limit) { const selected = [], seen = new Set(); pool.forEach(card => { const key = questionDedupeKey(card); if (key && seen.has(key)) return; selected.push(card); if (key) seen.add(key); }); return selected.slice(0, limit); }
-function startExam() { examSubmitted = false; state.review.clear(); document.body.classList.remove('review-mode', 'show-all-review', 'submitted'); document.getElementById('submit-exam').disabled = false; setupCards(); const category = document.getElementById('category-filter').value; const count = selectedQuestionCount(); const random = document.getElementById('shuffle-questions').checked; const pool = questions.filter(card => category === 'all' || card.dataset.category === category); const orderedPool = random ? shuffleArray([...pool]) : [...pool]; const selected = uniqueQuestionSelection(orderedPool, Math.min(count, pool.length)); questions.forEach(card => card.classList.add('not-in-exam')); selected.forEach((card, idx) => { card.classList.remove('not-in-exam'); card.dataset.examOrder = idx; const badge = card.querySelector('.exam-number'); if (badge) badge.textContent = '第 ' + (idx + 1) + ' 題'; }); questions = selected; currentIndex = 0; examSubmitted = false; remainingSeconds = Number(document.getElementById('time-limit').value) * 60; document.body.classList.add('exam-active'); document.body.classList.remove('review-mode'); document.getElementById('start-screen').hidden = true; document.getElementById('exam-shell').hidden = false; document.getElementById('results').hidden = true; buildNavigator(); showQuestion(0); startTimer(); updateProgress(); }
+function startExam() { examSubmitted = false; state.review.clear(); document.body.classList.remove('review-mode', 'show-all-review', 'submitted'); document.getElementById('submit-exam').disabled = false; setupCards(); const category = document.getElementById('category-filter').value; const questionType = selectedQuestionType(); const count = selectedQuestionCount(); const random = document.getElementById('shuffle-questions').checked; const pool = questions.filter(card => (category === 'all' || card.dataset.category === category) && questionMatchesType(card, questionType)); if (!pool.length) { alert('目前篩選條件沒有可用題目，請改選其他題型或技能範圍。'); return; } const orderedPool = random ? shuffleArray([...pool]) : [...pool]; const selected = uniqueQuestionSelection(orderedPool, Math.min(count, pool.length)); questions.forEach(card => card.classList.add('not-in-exam')); selected.forEach((card, idx) => { card.classList.remove('not-in-exam'); card.dataset.examOrder = idx; const badge = card.querySelector('.exam-number'); if (badge) badge.textContent = '第 ' + (idx + 1) + ' 題'; }); questions = selected; currentIndex = 0; examSubmitted = false; remainingSeconds = Number(document.getElementById('time-limit').value) * 60; document.body.classList.add('exam-active'); document.body.classList.remove('review-mode'); document.getElementById('start-screen').hidden = true; document.getElementById('exam-shell').hidden = false; document.getElementById('results').hidden = true; buildNavigator(); showQuestion(0); startTimer(); updateProgress(); }
 function buildNavigator() { const nav = document.getElementById('question-nav'); nav.innerHTML = ''; questions.forEach((_, idx) => { const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = idx + 1; btn.addEventListener('click', () => showQuestion(idx)); nav.appendChild(btn); }); }
 function showQuestion(index) { currentIndex = Math.max(0, Math.min(index, questions.length - 1)); questions.forEach((card, idx) => card.classList.toggle('current', idx === currentIndex)); document.querySelectorAll('#question-nav button').forEach((btn, idx) => btn.classList.toggle('active', idx === currentIndex)); document.getElementById('position').textContent = (currentIndex + 1) + ' / ' + questions.length; document.getElementById('prev-question').disabled = currentIndex === 0; document.getElementById('next-question').disabled = currentIndex === questions.length - 1; document.getElementById('mark-review').classList.toggle('selected', state.review.has(questions[currentIndex]?.id)); updateProgress(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 function isAnswered(card) { const groups = new Map(); card.querySelectorAll('input[type="radio"]').forEach(input => { if (!groups.has(input.name)) groups.set(input.name, false); if (input.checked) groups.set(input.name, true); }); const checkboxGroups = new Set([...card.querySelectorAll('input[type="checkbox"]')].map(input => input.name || input.id)); const checkboxAnswered = checkboxGroups.size === 0 || [...checkboxGroups].some(name => [...card.querySelectorAll('input[type="checkbox"]')].some(input => (input.name || input.id) === name && input.checked)); const radioAnswered = [...groups.values()].every(Boolean); const ynGroups = [...card.querySelectorAll('.yn-options')]; const ynAnswered = ynGroups.every(group => group.querySelector('.selected')); const textInputs = [...card.querySelectorAll('input[type="text"], textarea')]; const textAnswered = textInputs.length === 0 || textInputs.some(input => normalizeText(input.value)); const selects = [...card.querySelectorAll('select')]; const selectsAnswered = selects.length === 0 || selects.every(select => select.value); const hasControls = groups.size + checkboxGroups.size + ynGroups.length + textInputs.length + selects.length > 0; return hasControls && radioAnswered && checkboxAnswered && ynAnswered && textAnswered && selectsAnswered; }
@@ -20525,14 +20543,16 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     return window.ai900PracticeUnlocked === true;
   }
 
-  function setDefaults(count, minutes, category, shuffle) {
+  function setDefaults(count, minutes, category, shuffle, questionType = 'all') {
     const countSelect = document.getElementById('question-count');
     const timeSelect = document.getElementById('time-limit');
     const categorySelect = document.getElementById('category-filter');
+    const questionTypeSelect = document.getElementById('question-type-filter');
     const shuffleBox = document.getElementById('shuffle-questions');
     if (countSelect) countSelect.value = count;
     if (timeSelect) timeSelect.value = minutes;
     if (categorySelect) categorySelect.value = category;
+    if (questionTypeSelect) questionTypeSelect.value = questionType;
     if (shuffleBox) shuffleBox.checked = shuffle;
   }
 
@@ -20542,6 +20562,10 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
 
   function selectedHomeTimeLimit() {
     return document.getElementById('home-time-limit')?.value || '60';
+  }
+
+  function selectedHomeQuestionType() {
+    return document.getElementById('home-question-type')?.value || 'all';
   }
 
   function openUnlock(feature) {
@@ -20663,12 +20687,12 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       return;
     }
     if (feature === 'exam') {
-      setDefaults(selectedHomeQuestionCount(), selectedHomeTimeLimit(), 'all', true);
+      setDefaults(selectedHomeQuestionCount(), selectedHomeTimeLimit(), 'all', true, selectedHomeQuestionType());
       window.startExam?.();
       return;
     }
     if (feature === 'mock') {
-      setDefaults(selectedHomeQuestionCount(), selectedHomeTimeLimit(), 'all', true);
+      setDefaults(selectedHomeQuestionCount(), selectedHomeTimeLimit(), 'all', true, selectedHomeQuestionType());
       window.startExam?.();
       return;
     }
