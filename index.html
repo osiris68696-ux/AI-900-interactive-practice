@@ -18191,7 +18191,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260626-face-analysis-options-1';
+document.documentElement.dataset.ai900Build = '20260626-english-answer-zh-1';
 document.querySelectorAll('.question-card').forEach(function (card) {
   card.querySelectorAll('.question-body li').forEach(function (item, index) {
     var input = item.querySelector(':scope > input[type="radio"], :scope > input[type="checkbox"]');
@@ -21017,6 +21017,10 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Microsoft Bot Framework', 'Microsoft Bot Framework'],
     ['Power 虛擬代理程式', 'Power Virtual Agents'],
     ['Power Virtual Agents', 'Power Virtual Agents'],
+    ['Azure Health Bot', 'Azure Health Bot'],
+    ['Microsoft 365 Copilot', 'Microsoft 365 Copilot 助理'],
+    ['GitHub Copilot', '程式碼助理服務'],
+    ['ChatGPT', 'ChatGPT'],
     ['現為自訂問題解答', 'QnA Maker'],
     ['自訂問題解答', 'QnA Maker'],
     ['QnA Maker', 'QnA Maker']
@@ -21028,15 +21032,27 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Text Analytics', '文字分析'],
     ['Translation', '翻譯'],
     ['Translator', '翻譯工具'],
+    ['Translator Text', '翻譯工具文字'],
     ['Speech', '語音'],
     ['Speech Service', '語音服務'],
+    ['Speech Recognition', '語音辨識'],
+    ['Speech Synthesis', '語音合成'],
+    ['Speech to Text', '語音轉文字'],
+    ['Speech-to-Text', '語音轉文字'],
+    ['Text to Speech', '文字轉語音'],
+    ['Text-to-Speech', '文字轉語音'],
     ['Language Service', '語言服務'],
     ['Object Detection', '物件偵測'],
     ['Image Analysis', '影像分析'],
     ['Image Classification', '影像分類'],
+    ['Face Analysis', '臉部分析'],
+    ['Face Detection', '臉部偵測'],
+    ['Face Verification', '臉部驗證'],
     ['Face', '臉部'],
-    ['OCR', 'OCR'],
-    ['Optical Character Recognition', 'OCR'],
+    ['OCR', '光學字元辨識'],
+    ['Optical Character Recognition', '光學字元辨識'],
+    ['Form Recognizer', '表格辨識器'],
+    ['Document Intelligence', '文件智慧'],
     ['Classification', '分類'],
     ['Binary Classification', '二元分類'],
     ['Multiclass Classification', '多類別分類'],
@@ -21058,6 +21074,45 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     ['Key Phrase Extraction', '關鍵片語擷取'],
     ['Language Detection', '語言偵測'],
     ['Natural Language Processing', '自然語言處理'],
+    ['Prompt Engineering', '提示工程'],
+    ['Fine-tuning', '微調'],
+    ['Completion', '完成'],
+    ['Embedding', '內嵌'],
+    ['Knowledge Base', '基礎知識'],
+    ['Intent', '意圖'],
+    ['Entity', '實體'],
+    ['DALL-E', '影像生成模型'],
+    ['Whisper', '語音辨識模型'],
+    ['Codex', '程式碼生成模型'],
+    ['GPT-3', '大型語言模型'],
+    ['GPT-3.5', '大型語言模型'],
+    ['GPT-4', '大型語言模型'],
+    ['GPT-4-32k', '大型語言模型'],
+    ['Jupyter Notebook', '互動式筆記本'],
+    ['Azure REST API', 'Azure REST API 介面'],
+    ['microsoft-swinv2-base-patch4-window12-192-22k', '影像分類模型'],
+    ['Pattern.any', '模式比對'],
+    ['machine-learned', '機器學習'],
+    ['Copilot', '副手'],
+    ['Azure Health Bot', 'Azure 健康機器人'],
+    ['Microsoft 365 Copilot', 'Microsoft 365 Copilot'],
+    ['GitHub Copilot', 'GitHub Copilot'],
+    ['Azure OpenAI Studio', 'Azure OpenAI 工作室'],
+    ['ChatGPT', '聊天機器人'],
+    ['IntelliSense', '智慧感知'],
+    ['Scala', '程式語言'],
+    ['C#', '程式語言'],
+    ['Python', '程式語言'],
+    ['R', '程式語言'],
+    ['PDF', 'PDF 檔案'],
+    ['ZIP', 'ZIP 壓縮檔'],
+    ['JPEG', 'JPEG 圖片'],
+    ['PPTX', 'PowerPoint 簡報'],
+    ['5 MB', '5 MB 大小限制'],
+    ['5MB', '5 MB 大小限制'],
+    ['10 MB', '10 MB 大小限制'],
+    ['50 MB', '50 MB 大小限制'],
+    ['100 MB', '100 MB 大小限制'],
     ['Create Multi-turn Question', '建立多回合問題'],
     ['Chit-chat', '閒聊'],
     ['Increase Response Confidence Threshold', '提高回應信賴等級閾值'],
@@ -21071,9 +21126,26 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
       ['azure ai language', 'Azure AI 語言'],
       ['azure ai speech', 'Azure AI 語音'],
       ['azure ai document intelligence', 'Azure AI 文件智慧'],
+      ['azure ai translator', 'Azure AI 翻譯'],
       ['azure ai search', 'Azure AI 搜尋'],
       ['azure ai custom vision', 'Azure AI 自訂視覺'],
+      ['azure ai custom vision object detection', 'Azure AI 自訂視覺物件偵測'],
+      ['azure ai custom vision classification', 'Azure AI 自訂視覺分類'],
+      ['azure ai vision image analysis', 'Azure AI 視覺影像分析'],
+      ['azure ai vision spatial analysis', 'Azure AI 視覺空間分析'],
+      ['azure ai immersive reader', 'Azure AI 沉浸式閱讀程式'],
       ['azure machine learning', 'Azure 機器學習'],
+      ['azure bot service', 'Azure 機器人服務'],
+      ['azure openai', 'Azure OpenAI 服務'],
+      ['azure openai service', 'Azure OpenAI 服務'],
+      ['azure openai studio', 'Azure OpenAI 工作室'],
+      ['azure openai whisper', 'Azure OpenAI Whisper 模型'],
+      ['azure openai dall-e', 'Azure OpenAI DALL-E 模型'],
+      ['azure openai gpt-4', 'Azure OpenAI GPT-4 模型'],
+      ['azure openai gpt-3.5', 'Azure OpenAI GPT-3.5 模型'],
+      ['azure openai gpt-3.5 turbo', 'Azure OpenAI GPT-3.5 Turbo 模型'],
+      ['azure cognitive services', 'Azure 認知服務'],
+      ['azure kubernetes service', 'Azure Kubernetes Service'],
       ['azure ai foundry service', 'Azure AI Foundry 服務'],
       ['azure ai foundry', 'Azure AI Foundry']
     ]);
@@ -21122,14 +21194,27 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     if (azure) return azure;
     const productBare = stripParens(body);
     const productEnglish = productNameMap.get(body) || productNameMap.get(productBare);
-    if (productEnglish) return prefix + productEnglish + (hasChinese(productBare) ? '（' + productBare + '）' : '');
+    if (productEnglish) {
+      const productZh = new Map([
+        ['microsoft bot framework', 'Microsoft 機器人架構'],
+        ['power virtual agents', 'Power 虛擬代理程式'],
+        ['azure health bot', 'Azure 健康機器人'],
+        ['microsoft 365 copilot', 'Microsoft 365 Copilot 助理'],
+        ['github copilot', '程式碼助理服務'],
+        ['chatgpt', '聊天機器人'],
+        ['qna maker', '現為自訂問題解答']
+      ]).get(productEnglish.toLowerCase());
+      return prefix + productEnglish + (hasChinese(productBare) ? '（' + productBare + '）' : (productZh ? '（' + productZh + '）' : ''));
+    }
     if (/^Azure\b/i.test(body)) return original;
     const englishFirst = body.match(/^[A-Za-z][A-Za-z0-9+\- /.]*[（(]\s*([^（）()]*[\u4e00-\u9fff][^（）()]*)\s*[）)]$/);
-    if (englishFirst) return prefix + clean(englishFirst[1]);
+    if (englishFirst) return prefix + clean(body.replace(/\s*[（(]\s*/, '（').replace(/\s*[）)]\s*$/, '）'));
     const withoutEnglish = stripParens(body);
     if (hasChinese(withoutEnglish)) return prefix + withoutEnglish;
-    const zh = reverse.get(body.toLowerCase());
-    return zh ? prefix + zh : original;
+    const zhDirect = reverse.get(body.toLowerCase());
+    const zhBare = reverse.get(withoutEnglish.toLowerCase());
+    const englishOriginal = clean(body.replace(/\s*[（(]\s*/g, ' (').replace(/\s*[）)]\s*/g, ')'));
+    return (zhDirect || zhBare) ? prefix + (zhDirect ? body : englishOriginal) + '（' + (zhDirect || zhBare) + '）' : original;
   }
 
   function optionKey(value) {
