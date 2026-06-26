@@ -18191,7 +18191,7 @@ button.shadow-card {
 </div>
 <script id="ai900-original-choice-snapshot">
 window.ai900DisableLegacyChoiceNormalization = true;
-document.documentElement.dataset.ai900Build = '20260625-answer-order-audit-1';
+document.documentElement.dataset.ai900Build = '20260626-face-analysis-options-1';
 document.querySelectorAll('.question-card').forEach(function (card) {
   card.querySelectorAll('.question-body li').forEach(function (item, index) {
     var input = item.querySelector(':scope > input[type="radio"], :scope > input[type="checkbox"]');
@@ -18307,7 +18307,11 @@ document.addEventListener('DOMContentLoaded', () => { examSubmitted = false; doc
     else if (/生成式|OpenAI|GPT|大型語言|LLM|token|模型聊天/.test(text)) pool = genai;
     const fallback = uniqueOptions([...responsibleAI, ...nlp, ...ml, ...vision, ...genai]);
     if (providedOptions && providedOptions.length > 1) return pickFourBlankOptions(answer, providedOptions, fallback);
-    pool = uniqueOptions(pool);
+    const correctAnswerKey = optionDedupeKey(answer);
+    pool = uniqueOptions(pool).filter(option => {
+      const key = optionDedupeKey(option);
+      return !correctAnswerKey || !key || key === correctAnswerKey || (!correctAnswerKey.includes(key) && !key.includes(correctAnswerKey));
+    });
     return pickFourBlankOptions(answer, pool, fallback);
   }
   function makeBlankControl(card, target, options) {
